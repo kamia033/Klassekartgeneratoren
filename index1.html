@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Klassekart Program</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <h1>Klassekartgeneratoren 3LIAS</h1>
+    <div class="container">
+        <!-- Venstre panel: Klassekart + slider og eksport-knapper -->
+        <div class="left-panel">
+            <div class="canvas-container">
+                <canvas id="gridCanvas"></canvas>
+            </div>
+            <div class="canvas-controls">
+                <div class="slider-container">
+                    <label for="cellSizeSlider">Størrelse: <span id="cellSizeValue">40</span>px</label>
+                    <input type="range" id="cellSizeSlider" min="20" max="100" value="40"
+                        oninput="updateCellSize(this.value)">
+                </div>
+                <div class="export-buttons">
+                    <button onclick="exportImage()">Eksporter bilde</button>
+                    <button onclick="copyImage()">Kopier bilde til utklippstavlen</button>
+                </div>
+            </div>
+        </div>
+        <!-- Høyre kontrollpanel -->
+        <div class="controls">
+            <!-- Lagre-/lastingseksjonen flyttet til toppen -->
+            <div class="save-section">
+                <input type="text" id="className" placeholder="Skriv inn navn på klasse">
+                <div class="dropdown">
+                    <select id="savedClasses" onchange="loadClass(this.value)">
+                        <option value="">-- Velg lagret klasse --</option>
+                    </select>
+                </div>
+                <button onclick="saveClass()">Lagre klasse</button>
+                <button onclick="deleteClass()">Slett klasse</button>
+            </div>
+            <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)"></textarea>
+            <button onclick="assignStudents()">Plasser elever tilfeldig</button>
+            <div class="drag-menu">
+                <h3>Elementer (klikk og dra)</h3>
+                <div class="draggable-item" draggable="true" data-type="desk">Elevpult</div>
+                <div class="draggable-item" draggable="true" data-type="roundtable">Rundbord</div>
+                <div class="draggable-item" draggable="true" data-type="other">Annet</div>
+                
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

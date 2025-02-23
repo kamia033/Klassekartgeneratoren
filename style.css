@@ -1,0 +1,112 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f0f0f0;
+  }
+  .container {
+    display: flex;
+    gap: 20px;
+  }
+  /* Venstre panel med klassekart og kontroller for størrelse/eksport */
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .canvas-container {
+    width: 800px;
+    height: 600px;
+    overflow: auto;
+    border: 2px solid #424242;
+    background-color: white;
+  }
+  canvas {
+    display: block;
+  }
+  .canvas-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .slider-container, .export-buttons {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  .slider-container label {
+    font-size: 14px;
+  }
+  /* Høyre kontrollpanel */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 300px;
+  }
+  /* Lagre-/lastingseksjonen flyttet til toppen */
+  .save-section {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  textarea {
+    height: 150px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+  input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .dropdown {
+    margin: 10px 0;
+  }
+  /* Drag-meny for elementer */
+  .drag-menu {
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 4px;
+  }
+  .draggable-item {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #ddd;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    cursor: grab;
+    text-align: center;
+  }
+
+select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.save-section {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+}
