@@ -23,24 +23,42 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      width:80%;
+      
     }
     .canvas-container {
-      width: 70vw;
-      height: 85vh;
+      position: relative;
+      width: 60vw;
+      height: 82vh;
+      
       overflow: auto;
+      max-width: 100%;
+      
+      
       border: 2px solid #424242;
       background-color: white;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     canvas {
       display: block;
+      
     }
     .canvas-controls {
       display: flex;
-      
+      width:100%;
       flex-wrap: wrap;
       gap: 10px;
-      justify-content: center;
+      justify-content: space-between;
+    }
+    #cellSizeSlider {
+      width: 80%;
+    }
+    .slider-container{
+      display: flex;
+      flex-direction: row;
+      align-items: center;;
+      justify-content: space-between;
+      width: 60%;
     }
     .slider-container, .export-buttons {
       background-color: #fff;
@@ -57,6 +75,12 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      width: 20%;
+    }
+
+    .save-section button{
+      margin-top: 5px;
+      width:100%;
     }
     .save-section {
       background-color: #fff;
@@ -166,6 +190,7 @@
       font-weight: bold;
       margin-top: 10px;
     }
+    
     /* Footer */
     footer {
       text-align: center;
@@ -187,8 +212,8 @@
       </div>
       <div class="canvas-controls">
         <div class="slider-container">
-          <label for="cellSizeSlider">Rute størrelse: <span id="cellSizeValue">40</span>px</label>
-          <input type="range" id="cellSizeSlider" min="20" max="100" value="40" oninput="updateCellSize(this.value)">
+          <label for="cellSizeSlider">Zoom: <span id="cellSizeValue">40</span>px</label>
+          <input type="range" id="cellSizeSlider" min="30" max="100" value="40" oninput="updateCellSize(this.value)">
         </div>
         <div class="export-buttons">
           <button onclick="exportImage()">Eksporter bilde</button>
@@ -367,7 +392,7 @@
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.cellSize = 40;
-        this.numCols = 20;
+        this.numCols = 30;
         this.numRows = 15;
         this.gridColor = "#E0E0E0";
         this.deskColor = "#FF0000";
@@ -862,22 +887,32 @@
       const names = document.getElementById("studentList").value.split("\n");
       grid.assignStudents(names);
     }
-    
-    function updateCellSize(value) {
-      let oldSize = grid.cellSize;
-      grid.cellSize = parseInt(value);
-      document.getElementById("cellSizeValue").innerText = value;
-      let factor = grid.cellSize / oldSize;
-      grid.others.forEach(other => {
-        other.x *= factor;
-        other.y *= factor;
-        other.width *= factor;
-        other.height *= factor;
-      });
-      grid.updateCanvasSize();
-      unsavedChanges = true;
-      grid.draw();
-    }
+    let debounceTimeout;
+
+
+
+
+function updateCellSize(value) {
+  
+    let oldSize = grid.cellSize;
+    grid.cellSize = parseInt(value);
+    document.getElementById("cellSizeValue").innerText = value;
+    let factor = grid.cellSize / oldSize;
+    grid.others.forEach(other => {
+      other.x *= factor;
+      other.y *= factor;
+      other.width *= factor;
+      other.height *= factor;
+    });
+    grid.updateCanvasSize();
+    unsavedChanges = true;
+    grid.draw();
+  
+}
+
+
+
+   
     
     function getElementsBoundingBox() {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
