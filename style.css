@@ -1,112 +1,216 @@
+/* Ny moderne fargepalett og typografi */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f0f0f0;
-  }
-  .container {
-    display: flex;
-    gap: 20px;
-  }
-  /* Venstre panel med klassekart og kontroller for størrelse/eksport */
-  .left-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .canvas-container {
-    width: 800px;
-    height: 600px;
-    overflow: auto;
-    border: 2px solid #424242;
-    background-color: white;
-  }
-  canvas {
-    display: block;
-  }
-  .canvas-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-  }
-  .slider-container, .export-buttons {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 4px;
-  }
-  .slider-container label {
-    font-size: 14px;
-  }
-  /* Høyre kontrollpanel */
-  .controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 300px;
-  }
-  /* Lagre-/lastingseksjonen flyttet til toppen */
-  .save-section {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 4px;
-  }
-  textarea {
-    height: 150px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  button {
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #45a049;
-  }
-  input[type="text"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .dropdown {
-    margin: 10px 0;
-  }
-  /* Drag-meny for elementer */
-  .drag-menu {
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #fff;
-    border-radius: 4px;
-  }
-  .draggable-item {
-    padding: 8px;
-    margin: 5px 0;
-    background-color: #ddd;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-    cursor: grab;
-    text-align: center;
-  }
-
-select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  background-color: #f7f9fc;
+  color: #333;
+}
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 20px;
+}
+/* Venstre panel */
+.left-panel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 80%;
+}
+.canvas-container {
+  position: relative;
+  width: 60vw;
+  height: 82vh;
+  overflow: auto;
+  max-width: 100%;
+  border: 2px solid #424242;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+canvas {
+  display: block;
+}
+.canvas-controls {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+#cellSizeSlider {
+  width: 80%;
+}
+.slider-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 60%;
+}
+.slider-container, .export-buttons {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+}
+.slider-container label {
+  font-size: 14px;
+}
+/* Høyre panel */
+.controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 20%;
+}
+.save-section button {
+  margin-top: 5px;
+  width: 100%;
+}
+.save-section {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+textarea {
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+button:hover {
+  background-color: #45a049;
+}
+input[type="text"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.dropdown {
+  margin: 10px 0;
+}
+/* Fargeknapper (sirkler) – ligner Miro */
+.color-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  margin-right: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.color-button:hover {
+  transform: scale(1.1);
+}
+/* Gruppe fargevisning i kontekstmenyen */
+.group-color {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin: 2px;
+}
+/* Standard kontekstmeny */
+#contextMenu, #groupContextMenu {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+#contextMenu ul, #groupContextMenu ul {
+  list-style: none;
+  margin: 0;
+  padding: 5px 0;
+}
+#contextMenu li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+#contextMenu li:hover {
+  background-color: #f0f0f0;
+}
+#groupContextMenu ul {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+#groupContextMenu li {
+  cursor: pointer;
 }
 
-.save-section {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 4px;
+/* Ny undermeny for rundbord */
+#roundtableSubMenu {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+#roundtableSubMenu ul {
+  list-style: none;
+  margin: 0;
+  padding: 5px 0;
+}
+#roundtableSubMenu li {
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#roundtableSubMenu li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Inline notifikasjon i øvre høyre hjørne */
+#notification {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-size: 14px;
+  z-index: 10000;
+  display: none;
+}
+/* Varsel for ufordelte elever */
+#assignmentWarning {
+  display: none;
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
+  font-size: 14px;
+  color: #777;
 }
