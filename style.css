@@ -1,4 +1,19 @@
 /* Ny moderne fargepalett og typografi */
+
+/* Fargervariabler */
+:root {
+  --accent: #7359f7;
+  --accent_hover: #5540de;
+  --font:white;
+  --font_light: #777;
+  --background: #ffeba7;
+  --element_background: #fff;
+
+}
+
+
+
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
@@ -42,6 +57,7 @@ canvas {
 }
 #cellSizeSlider {
   width: 80%;
+
 }
 .slider-container {
   display: flex;
@@ -72,7 +88,7 @@ canvas {
   width: 100%;
 }
 .save-section {
-  background-color: #fff;
+  background-color: var(--element_background);
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 4px;
@@ -85,17 +101,42 @@ textarea {
   border-radius: 4px;
   resize: vertical;
 }
-button {
+.left-panel button{
   padding: 10px 15px;
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--accent);
+  color: var(--font);
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
 }
-button:hover {
-  background-color: #45a049;
+.left-panel button:hover {
+  background-color: var(--accent_hover);
+}
+.controls button {
+  padding: 10px 15px;
+  background-color: var(--accent);
+  color: var(--font);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  
+  transition: all 200ms linear;
+  border-radius: 4px;
+  width: 100%;
+  letter-spacing: 1px;
+}
+.controls button:hover {
+  background-color: var(--accent_hover);
 }
 input[type="text"] {
   padding: 8px;
@@ -108,10 +149,13 @@ input[type="text"] {
   margin: 10px 0;
 }
 /* Fargeknapper (sirkler) – ligner Miro */
+
+
 .color-button {
-  width: 30px;
+  width: 30px !important;
   height: 30px;
-  border-radius: 50%;
+  margin-top: 5px;
+  border-radius: 50% !important;
   border: none;
   margin-right: 5px;
   cursor: pointer;
@@ -159,36 +203,36 @@ input[type="text"] {
   cursor: pointer;
 }
 
-/* Ny undermeny for rundbord */
+
 #roundtableSubMenu {
   display: none;
-  position: fixed;
-  z-index: 2000;
+  position: absolute;
+  z-index: 1001;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-#roundtableSubMenu ul {
-  list-style: none;
-  margin: 0;
-  padding: 5px 0;
-}
+
 #roundtableSubMenu li {
   padding: 8px 12px;
   cursor: pointer;
   white-space: nowrap;
+  color: black;
 }
+
 #roundtableSubMenu li:hover {
   background-color: #f0f0f0;
 }
+
+
 
 /* Inline notifikasjon i øvre høyre hjørne */
 #notification {
   position: fixed;
   top: 10px;
   right: 10px;
-  background-color: #4CAF50;
+  background-color: var(--accent);
   color: white;
   padding: 10px 15px;
   border-radius: 4px;
@@ -213,4 +257,94 @@ footer {
   border-top: 1px solid #ccc;
   font-size: 14px;
   color: #777;
+}
+
+/* Grunnstil for dropdown-container */
+.dropdown {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 2;
+  height: 50px;
+  transition: all 200ms linear;
+  border-radius: 4px;
+  width: 100%;
+  letter-spacing: 1px;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: none;
+  background-color: var(--accent);
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 12px 35px 0 rgba(255,235,167,.15);
+  position: relative;
+}
+
+/* Stil for den valgte dropdown-verdien */
+.dropdown-selected {
+  padding: 10px 15px;
+  width: 100%;
+  background-color: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+/* Hover-effekt for den valgte dropdown-verdien */
+.dropdown-selected:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dropdown-liste (som skjules når den ikke er aktiv) */
+.dropdown-options {
+  display: none;
+  position: absolute;
+  width: 100%;
+  top: 55px; /* Litt avstand fra den valgte dropdownen */
+  background-color: white;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  z-index: 10;
+  padding: 5px 0;
+  max-height: 200px; /* Maksimal høyde for listen */
+  overflow-y: auto; /* Rull når det er for mange elementer */
+  list-style: none;
+  margin: 0;
+}
+
+/* Stil for hvert alternativ i dropdown-liste */
+.dropdown-options li {
+  padding: 12px 20px;
+  cursor: pointer;
+  color: #333;
+  font-weight: 400;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+/* Hover-effekt for dropdown-alternativer */
+.dropdown-options li:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Når dropdown er aktiv, vis listen */
+.dropdown.active .dropdown-options {
+  display: block;
+}
+.dropdown-selected::after {
+  content: '▼'; /* Unicode for nedoverpil */
+  font-size: 18px;
+  color: white;
+  position: absolute;
+  right: 15px; /* Plasser pilen på høyre side */
+  top: 50%;
+  transform: translateY(-50%);
 }

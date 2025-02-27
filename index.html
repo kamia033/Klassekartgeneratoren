@@ -29,10 +29,14 @@
     <div class="controls">
       <div class="save-section">
         <div class="dropdown">
-          <select id="savedClasses" onchange="handleClassChange(this.value)">
+          <div class="dropdown-selected" onclick="toggleDropdown()">Velg en klasse</div>
+          <ul class="dropdown-options">
             <!-- Lagrede klasser fylles inn dynamisk -->
-          </select>
+          </ul>
         </div>
+        
+        
+        
         <button onclick="createNewClass()">Opprett ny klasse</button>
         <button onclick="saveClass()">Lagre klasse</button>
         <button onclick="deleteClass()">Slett klasse</button>
@@ -69,12 +73,14 @@
   </div>
   
   <!-- Ny undermeny for rundbord – vises når brukeren velger rundbord -->
-  <div id="roundtableSubMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; padding: 5px;">
+  <div id="roundtableSubMenu" >
     <ul>
+
+      <li data-seats="1">1 seter</li>
       <li data-seats="2">2 seter</li>
+      <li data-seats="3">3 seter</li>
       <li data-seats="4">4 seter</li>
-      <li data-seats="6">6 seter</li>
-      <li data-seats="8">8 seter</li>
+      <li data-seats="5">5 seter</li>
     </ul>
   </div>
   

@@ -149,7 +149,10 @@ class ClassroomGrid {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.cellSize = 40;
+    //Get canvas height and width by method
+
+    this.cellSize = document.getElementById("gridCanvas").offsetHeight / 15;
+
     this.numCols = 30;
     this.numRows = 15;
     this.gridColor = "#E0E0E0";
@@ -304,58 +307,99 @@ class ClassroomGrid {
     });
 
     // Tegn rundbord med variabelt antall seter
-    this.roundtables.forEach(table => {
-      let tableX = table.gridX * this.cellSize;
-      let tableY = table.gridY * this.cellSize;
-      let tableWidth = 2 * this.cellSize;
-      let tableHeight = 2 * this.cellSize;
-      let cx = tableX + this.cellSize;
-      let cy = tableY + this.cellSize;
-      let radius = this.cellSize;
-      let tableColor = table.color || this.roundtableFill;
-      this.ctx.fillStyle = tableColor;
-      this.ctx.beginPath();
-      this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-      this.ctx.fill();
-      this.ctx.strokeStyle = this.borderColor;
-      this.ctx.lineWidth = 1;
-      this.ctx.stroke();
+this.roundtables.forEach(table => {
+  let tableX = table.gridX * this.cellSize;
+  let tableY = table.gridY * this.cellSize;
+  let tableWidth = 2 * this.cellSize;
+  let tableHeight = 2 * this.cellSize;
+  let cx = tableX + this.cellSize;
+  let cy = tableY + this.cellSize;
+  let radius = this.cellSize;
+  let tableColor = table.color || this.roundtableFill;
+  
+  // Tegn selve bordet (sirkel)
+  this.ctx.fillStyle = tableColor;
+  this.ctx.beginPath();
+  this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+  this.ctx.fill();
+  this.ctx.strokeStyle = this.borderColor;
+  this.ctx.lineWidth = 1;
+  this.ctx.stroke();
+  
+ // Tegn seter jevnt fordelt rundt bordet
+for (let i = 0; i < table.numSeats; i++) {
+  let angle;
+  if (table.numSeats === 2) {
+    // For to seter: plasser det ene til høyre (0 rad) og det andre til venstre (π rad)
+    angle = (i === 0) ? 0 : Math.PI;
+  } else {
+    // Standard fordeling med første sete øverst
+    angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
+  }
+  
+  let seatRectWidth = this.cellSize * 0.8;
+  let seatRectHeight = this.cellSize * 0.8;
+  // Plasser setet på en fast avstand fra midten
+  let seatCenterX = cx + Math.cos(angle) * radius * 0.7;
+  let seatCenterY = cy + Math.sin(angle) * radius * 0.7;
+  let seatX = seatCenterX - seatRectWidth / 2;
+  let seatY = seatCenterY - seatRectHeight / 2;
+  
+  // Hvis det finnes en student, tegn teksten horisontalt
+  if (table.students[i]) {
+    let textColor = getContrastColor(tableColor);
+    // Her brukes drawFittedText uten rotasjon (rotasjonsvinkelen er 0)
+    drawFittedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, textColor, "Arial", "normal");
+  }
+  
+  // Hvis plassen er markert, tegn et blått kryss
+  if (!isExporting && table.markedSeats[i]) {
+    this.ctx.strokeStyle = 'blue';
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(seatX + 5, seatY + 5);
+    this.ctx.lineTo(seatX + seatRectWidth - 5, seatY + seatRectHeight - 5);
+    this.ctx.moveTo(seatX + seatRectWidth - 5, seatY + 5);
+    this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
+    this.ctx.stroke();
+  }
 
-      // Tegn seter jevnt fordelt rundt bordet
-      for (let i = 0; i < table.numSeats; i++) {
-        let angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
-        let seatRectWidth = this.cellSize * 0.8;
-        let seatRectHeight = this.cellSize * 0.8;
-        let seatCenterX = cx + Math.cos(angle) * radius * 0.7;
-        let seatCenterY = cy + Math.sin(angle) * radius * 0.7;
-        let seatX = seatCenterX - seatRectWidth / 2;
-        let seatY = seatCenterY - seatRectHeight / 2;
-        if (table.students[i]) {
-          let textColor = getContrastColor(tableColor);
-          drawRotatedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, angle, textColor, "Arial", "normal");
-        }
-        if (!isExporting && table.markedSeats[i]) {
-          this.ctx.strokeStyle = 'blue';
-          this.ctx.lineWidth = 3;
-          this.ctx.beginPath();
-          this.ctx.moveTo(seatX + 5, seatY + 5);
-          this.ctx.lineTo(seatX + seatRectWidth - 5, seatY + seatRectHeight - 5);
-          this.ctx.moveTo(seatX + seatRectWidth - 5, seatY + 5);
-          this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
-          this.ctx.stroke();
-        }
-      }
-      
-      if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
-        this.ctx.fillStyle = 'red';
-        this.ctx.fillRect(tableX + tableWidth - this.deleteIconSize, tableY, this.deleteIconSize, this.deleteIconSize);
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 14px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('x', tableX + tableWidth - this.deleteIconSize / 2, tableY + this.deleteIconSize / 2);
-      }
-    });
+
+  }
+  
+  // Tegn radiale linjer som separerer setene
+  // Her definerer vi inner- og outer-grense for setområdet basert på 70% av radius og setestørrelsen
+  let seatRectHeight = this.cellSize * 0.8;
+  for (let i = 0; i < table.numSeats; i++) {
+    let boundaryAngle = (2 * Math.PI / table.numSeats) * i - Math.PI/2 + (Math.PI / table.numSeats);
+
+
+    let innerDistance = 0;
+    let outerDistance = radius * 0.6 + (seatRectHeight / 2);
+    let bx1 = cx + innerDistance * Math.cos(boundaryAngle);
+    let by1 = cy + innerDistance * Math.sin(boundaryAngle);
+    let bx2 = cx + outerDistance * Math.cos(boundaryAngle);
+    let by2 = cy + outerDistance * Math.sin(boundaryAngle);
+    this.ctx.beginPath();
+    this.ctx.moveTo(bx1, by1);
+    this.ctx.lineTo(bx2, by2);
+    this.ctx.strokeStyle = this.borderColor;
+    this.ctx.lineWidth = 1;
+    this.ctx.stroke();
+  }
+  
+  // Tegn sletteikon for bordet
+  if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
+    this.ctx.fillStyle = 'red';
+    this.ctx.fillRect(tableX + tableWidth - this.deleteIconSize, tableY, this.deleteIconSize, this.deleteIconSize);
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = 'bold 14px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText('x', tableX + tableWidth - this.deleteIconSize / 2, tableY + this.deleteIconSize / 2);
+  }
+});
+
 
     // Tegn merkelapper
     this.others.forEach(other => {
@@ -430,30 +474,34 @@ class ClassroomGrid {
     // Merkelapp
     for (let i = this.others.length - 1; i >= 0; i--) {
       let other = this.others[i];
+      // Sjekk om museklikket er innenfor merkelappens rektangel
       if (this.isPointInRect(pos.x, pos.y, other.x, other.y, other.width, other.height)) {
-        if (pos.x >= other.x + other.width - this.deleteIconSize && pos.x <= other.x + other.width &&
-            pos.y >= other.y && pos.y <= other.y + this.deleteIconSize) {
-          this.others.splice(i, 1);
-          unsavedChanges = true;
-          this.draw();
-          return;
-        }
-        const handleSize = 10;
-        if (pos.x >= other.x + other.width - handleSize && pos.y >= other.y + other.height - handleSize) {
-          other.resizing = true;
-          other.resizeStartWidth = other.width;
-          other.resizeStartHeight = other.height;
-          other.resizeStartX = pos.x;
-          other.resizeStartY = pos.y;
-        } else {
-          other.dragging = true;
-          other.dragOffsetX = pos.x - other.x;
-          other.dragOffsetY = pos.y - other.y;
-        }
+      // Sjekk om museklikket er på sletteikonet
+      if (pos.x >= other.x + other.width - this.deleteIconSize && pos.x <= other.x + other.width &&
+        pos.y >= other.y && pos.y <= other.y + this.deleteIconSize) {
+        this.others.splice(i, 1);
         unsavedChanges = true;
-        this.activeOther = other;
         this.draw();
         return;
+      }
+      const handleSize = 10;
+      // Sjekk om museklikket er på resize-håndtaket
+      if (pos.x >= other.x + other.width - handleSize && pos.y >= other.y + other.height - handleSize) {
+        other.resizing = true;
+        other.resizeStartWidth = other.width;
+        other.resizeStartHeight = other.height;
+        other.resizeStartX = pos.x;
+        other.resizeStartY = pos.y;
+      } else {
+        // Start dragging av merkelappen
+        other.dragging = true;
+        other.dragOffsetX = pos.x - other.x;
+        other.dragOffsetY = pos.y - other.y;
+      }
+      unsavedChanges = true;
+      this.activeOther = other;
+      this.draw();
+      return;
       }
     }
 
@@ -597,6 +645,10 @@ class ClassroomGrid {
     e.preventDefault();
     const pos = this.getMousePos(e);
     const type = e.dataTransfer.getData("text/plain");
+
+    console.log("Drop event detected with type:", type);
+    console.log("All data types available:", e.dataTransfer.types);
+
     if (type === "desk") {
       let gridX = Math.floor(pos.x / this.cellSize);
       let gridY = Math.floor(pos.y / this.cellSize);
@@ -795,14 +847,15 @@ function copyImage() {
   });
 }
 
-// Klassehåndtering
+// Klassehåndtering for den nye dropdown-menyen
 function updateClassDropdown() {
   const savedClasses = JSON.parse(localStorage.getItem("classes")) || {};
-  const dropdown = document.getElementById("savedClasses");
-  dropdown.innerHTML = `<option value="">-- Velg lagret klasse --</option>` +
-    Object.keys(savedClasses).map(c => `<option value="${c}">${c}</option>`).join('');
+  const dropdown = document.querySelector(".dropdown-options");
+  dropdown.innerHTML = Object.keys(savedClasses).map(c => `<li data-value="${c}" onclick="selectOption(this)">${c}</li>`).join('');
+  
+  // Hvis det er en valgt klasse, vis den i den valgte dropdownen
   if (currentClass && savedClasses[currentClass]) {
-    dropdown.value = currentClass;
+    document.querySelector('.dropdown-selected').textContent = currentClass;
   }
 }
 
@@ -821,8 +874,7 @@ function saveCurrentClass() {
 }
 
 function saveClass() {
-  const dropdown = document.getElementById("savedClasses");
-  const selected = dropdown.value;
+  const selected = document.querySelector('.dropdown-selected').textContent;
   if (!selected) {
     alert("Vennligst velg en klasse i dropdown-menyen.");
     return;
@@ -837,7 +889,7 @@ function loadClass(className) {
   if (savedClasses[className]) {
     grid.loadState(savedClasses[className]);
     currentClass = className;
-    document.getElementById("savedClasses").value = className;
+    document.querySelector('.dropdown-selected').textContent = className;
   }
 }
 
@@ -869,7 +921,7 @@ function createNewClass() {
   savedClasses[newName] = grid.saveState();
   localStorage.setItem("classes", JSON.stringify(savedClasses));
   updateClassDropdown();
-  document.getElementById("savedClasses").value = newName;
+  document.querySelector('.dropdown-selected').textContent = newName;
   showNotification("Klassen '" + newName + "' er opprettet og lagret.", 3000);
   unsavedChanges = false;
   currentClass = newName;
@@ -877,8 +929,7 @@ function createNewClass() {
 }
 
 function deleteClass() {
-  const dropdown = document.getElementById("savedClasses");
-  const className = dropdown.value;
+  const className = document.querySelector('.dropdown-selected').textContent;
   if (!className) return;
   if (confirm(`Er du sikker på at du vil slette klassen '${className}'?`)) {
     const savedClasses = JSON.parse(localStorage.getItem("classes")) || {};
@@ -895,6 +946,7 @@ function deleteClass() {
 
 updateClassDropdown();
 
+
 // Standard kontekstmeny
 function showContextMenu(e) {
   const menu = document.getElementById("contextMenu");
@@ -909,26 +961,46 @@ function showContextMenu(e) {
 }
 
 document.querySelectorAll("#contextMenu li").forEach(item => {
-  item.addEventListener("mouseenter", function(e) {
+  item.addEventListener("click", function(e) {
+    e.stopPropagation();
     const type = this.getAttribute("data-type");
     const menu = document.getElementById("contextMenu");
     const x = parseFloat(menu.dataset.x);
     const y = parseFloat(menu.dataset.y);
-    //menu.style.display = "none";
+    
     if (type === "roundtable") {
+      console.log("viser undermeny for rundbord!")
       showRoundtableSubMenu(e, x, y);
     } else {
       addElementAt(type, x, y);
     }
+    menu.style.display = "none";
   });
 });
 
 // Ny undermeny for rundbord – lar brukeren velge antall seter
 function showRoundtableSubMenu(e, x, y) {
   const subMenu = document.getElementById("roundtableSubMenu");
-  // Plasser undermenyen til høyre for hovedmenyen (juster offset etter behov)
-  subMenu.style.left = (e.pageX + 150) + "px";
-  subMenu.style.top = e.pageY + "px";
+
+  // Offset for å plassere undermenyen til høyre og litt ned fra hovedmenyen
+  const offsetX = 50;
+  const offsetY = 0;
+
+  let left = e.pageX + offsetX;
+  let top = e.pageY + offsetY;
+
+  // Sjekk om undermenyen går utenfor skjermen (horisontalt)
+  if (left + subMenu.offsetWidth > window.innerWidth) {
+    left = window.innerWidth - subMenu.offsetWidth - offsetX;
+  }
+
+  // Sjekk om undermenyen går utenfor skjermen (vertikalt)
+  if (top + subMenu.offsetHeight > window.innerHeight) {
+    top = window.innerHeight - subMenu.offsetHeight - offsetY;
+  }
+
+  subMenu.style.left = left + "px";
+  subMenu.style.top = top + "px";
   subMenu.style.display = "block";
   subMenu.dataset.x = x;
   subMenu.dataset.y = y;
@@ -991,3 +1063,21 @@ function setElementColor(color) {
   unsavedChanges = true;
   grid.draw();
 }
+
+function toggleDropdown() {
+  const options = document.querySelector('.dropdown-options');
+  options.style.display = options.style.display === 'block' ? 'none' : 'block';
+}
+
+function selectOption(element) {
+  const value = element.getAttribute('data-value');
+  const text = element.textContent;
+  document.querySelector('.dropdown-selected').textContent = text;
+  toggleDropdown();
+
+  // Kall handleClassChange for å beholde onchange-funksjonalitet
+  handleClassChange(value);
+}
+
+
+
