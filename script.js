@@ -119,9 +119,9 @@ function getDeskGroups() {
         for (let other of desks) {
           if (!visited.has(other)) {
             if ((other.gridX === current.gridX + 1 && other.gridY === current.gridY) ||
-                (other.gridX === current.gridX - 1 && other.gridY === current.gridY) ||
-                (other.gridY === current.gridY + 1 && other.gridX === current.gridX) ||
-                (other.gridY === current.gridY - 1 && other.gridX === current.gridX)) {
+              (other.gridX === current.gridX - 1 && other.gridY === current.gridY) ||
+              (other.gridY === current.gridY + 1 && other.gridX === current.gridX) ||
+              (other.gridY === current.gridY - 1 && other.gridX === current.gridX)) {
               stack.push(other);
             }
           }
@@ -134,7 +134,7 @@ function getDeskGroups() {
 }
 
 function sparkleItUp() {
-  const palette = ['#FF0000','#FF8700','#FFD300','#DEFF0A','#A1FF0A','#0AFF99','#0AEFFF','#147DF5','#580AFF','#BE0AFF'];
+  const palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
   let groups = getDeskGroups();
   groups.forEach(group => {
     const color = palette[Math.floor(Math.random() * palette.length)];
@@ -151,7 +151,7 @@ class ClassroomGrid {
     this.ctx = canvas.getContext('2d');
     //Get canvas height and width by method
 
-    this.cellSize = document.getElementById("gridCanvas").offsetHeight / 15;
+    this.cellSize = 50;
 
     this.numCols = 30;
     this.numRows = 15;
@@ -178,7 +178,7 @@ class ClassroomGrid {
     this.canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       let pos = this.getMousePos(e);
-      
+
       // Sjekk først om et rundbordsete ble klikket
       for (let table of this.roundtables) {
         let tableX = table.gridX * this.cellSize;
@@ -202,14 +202,14 @@ class ClassroomGrid {
           }
         }
       }
-      
+
       // Deretter sjekk om en pult ble klikket
       let clickedDesk = null;
       for (let desk of this.desks) {
         let deskX = desk.gridX * this.cellSize;
         let deskY = desk.gridY * this.cellSize;
         if (pos.x >= deskX && pos.x <= deskX + this.cellSize &&
-            pos.y >= deskY && pos.y <= deskY + this.cellSize) {
+          pos.y >= deskY && pos.y <= deskY + this.cellSize) {
           clickedDesk = desk;
           break;
         }
@@ -247,6 +247,7 @@ class ClassroomGrid {
   }
 
   draw() {
+    
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -269,6 +270,21 @@ class ClassroomGrid {
       this.ctx.strokeStyle = this.gridColor;
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
+    }
+
+    if (currentClass == "") {
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Halvtransparent svart
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      this.ctx.fillStyle = "white";
+      this.ctx.font = "25px Roboto";
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      this.ctx.fillText(
+        "Velg klasse fra menyen til høyre",
+        300 ,
+      200
+      );
     }
 
     // Tegn elevpulter
@@ -307,98 +323,107 @@ class ClassroomGrid {
     });
 
     // Tegn rundbord med variabelt antall seter
-this.roundtables.forEach(table => {
-  let tableX = table.gridX * this.cellSize;
-  let tableY = table.gridY * this.cellSize;
-  let tableWidth = 2 * this.cellSize;
-  let tableHeight = 2 * this.cellSize;
-  let cx = tableX + this.cellSize;
-  let cy = tableY + this.cellSize;
-  let radius = this.cellSize;
-  let tableColor = table.color || this.roundtableFill;
-  
-  // Tegn selve bordet (sirkel)
-  this.ctx.fillStyle = tableColor;
-  this.ctx.beginPath();
-  this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-  this.ctx.fill();
-  this.ctx.strokeStyle = this.borderColor;
-  this.ctx.lineWidth = 1;
-  this.ctx.stroke();
-  
- // Tegn seter jevnt fordelt rundt bordet
-for (let i = 0; i < table.numSeats; i++) {
-  let angle;
-  if (table.numSeats === 2) {
-    // For to seter: plasser det ene til høyre (0 rad) og det andre til venstre (π rad)
-    angle = (i === 0) ? 0 : Math.PI;
-  } else {
-    // Standard fordeling med første sete øverst
-    angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
-  }
-  
-  let seatRectWidth = this.cellSize * 0.8;
-  let seatRectHeight = this.cellSize * 0.8;
-  // Plasser setet på en fast avstand fra midten
-  let seatCenterX = cx + Math.cos(angle) * radius * 0.7;
-  let seatCenterY = cy + Math.sin(angle) * radius * 0.7;
-  let seatX = seatCenterX - seatRectWidth / 2;
-  let seatY = seatCenterY - seatRectHeight / 2;
-  
-  // Hvis det finnes en student, tegn teksten horisontalt
-  if (table.students[i]) {
-    let textColor = getContrastColor(tableColor);
-    // Her brukes drawFittedText uten rotasjon (rotasjonsvinkelen er 0)
-    drawFittedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, textColor, "Arial", "normal");
-  }
-  
-  // Hvis plassen er markert, tegn et blått kryss
-  if (!isExporting && table.markedSeats[i]) {
-    this.ctx.strokeStyle = 'blue';
-    this.ctx.lineWidth = 3;
-    this.ctx.beginPath();
-    this.ctx.moveTo(seatX + 5, seatY + 5);
-    this.ctx.lineTo(seatX + seatRectWidth - 5, seatY + seatRectHeight - 5);
-    this.ctx.moveTo(seatX + seatRectWidth - 5, seatY + 5);
-    this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
-    this.ctx.stroke();
-  }
+    this.roundtables.forEach(table => {
+      let tableX = table.gridX * this.cellSize;
+      let tableY = table.gridY * this.cellSize;
+      let tableWidth = 2 * this.cellSize;
+      let tableHeight = 2 * this.cellSize;
+      let cx = tableX + this.cellSize;
+      let cy = tableY + this.cellSize;
+      let radius = this.cellSize;
+      let tableColor = table.color || this.roundtableFill;
 
+      // Tegn selve bordet (sirkel)
+      this.ctx.fillStyle = tableColor;
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+      this.ctx.fill();
+      this.ctx.strokeStyle = this.borderColor;
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
 
-  }
-  
-  // Tegn radiale linjer som separerer setene
-  // Her definerer vi inner- og outer-grense for setområdet basert på 70% av radius og setestørrelsen
-  let seatRectHeight = this.cellSize * 0.8;
-  for (let i = 0; i < table.numSeats; i++) {
-    let boundaryAngle = (2 * Math.PI / table.numSeats) * i - Math.PI/2 + (Math.PI / table.numSeats);
+      // Tegn seter jevnt fordelt rundt bordet
+      for (let i = 0; i < table.numSeats; i++) {
+        let angle;
+        if (table.numSeats === 2) {
+          // For to seter: plasser det ene til høyre (0 rad) og det andre til venstre (π rad)
+          angle = (i === 0) ? 0 : Math.PI;
+        } else {
+          // Standard fordeling med første sete øverst
+          angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
+        }
 
+        let seatRectWidth = this.cellSize * 0.8;
+        let seatRectHeight = this.cellSize * 0.8;
+        // Plasser setet på en fast avstand fra midten
+        let seatCenterX = cx + Math.cos(angle) * radius * 0.7;
+        let seatCenterY = cy + Math.sin(angle) * radius * 0.7;
+        let seatX = seatCenterX - seatRectWidth / 2;
+        let seatY = seatCenterY - seatRectHeight / 2;
 
-    let innerDistance = 0;
-    let outerDistance = radius * 0.6 + (seatRectHeight / 2);
-    let bx1 = cx + innerDistance * Math.cos(boundaryAngle);
-    let by1 = cy + innerDistance * Math.sin(boundaryAngle);
-    let bx2 = cx + outerDistance * Math.cos(boundaryAngle);
-    let by2 = cy + outerDistance * Math.sin(boundaryAngle);
-    this.ctx.beginPath();
-    this.ctx.moveTo(bx1, by1);
-    this.ctx.lineTo(bx2, by2);
-    this.ctx.strokeStyle = this.borderColor;
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
-  }
-  
-  // Tegn sletteikon for bordet
-  if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
-    this.ctx.fillStyle = 'red';
-    this.ctx.fillRect(tableX + tableWidth - this.deleteIconSize, tableY, this.deleteIconSize, this.deleteIconSize);
-    this.ctx.fillStyle = 'white';
-    this.ctx.font = 'bold 14px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    this.ctx.fillText('x', tableX + tableWidth - this.deleteIconSize / 2, tableY + this.deleteIconSize / 2);
-  }
-});
+        // Hvis det finnes en student, tegn teksten horisontalt
+        if (table.students[i]) {
+          let textColor = getContrastColor(tableColor);
+          // Her brukes drawFittedText uten rotasjon (rotasjonsvinkelen er 0)
+          drawFittedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, textColor, "Arial", "normal");
+        }
+
+        // Hvis plassen er markert, tegn et blått kryss
+        if (!isExporting && table.markedSeats[i]) {
+          this.ctx.strokeStyle = 'blue';
+          this.ctx.lineWidth = 3;
+          this.ctx.beginPath();
+          this.ctx.moveTo(seatX + 5, seatY + 5);
+          this.ctx.lineTo(seatX + seatRectWidth - 5, seatY + seatRectHeight - 5);
+          this.ctx.moveTo(seatX + seatRectWidth - 5, seatY + 5);
+          this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
+          this.ctx.stroke();
+        }
+        
+        console.log("currentClass: " + currentClass);
+        
+
+      }
+
+      // Tegn radiale linjer som separerer setene
+      // Her definerer vi inner- og outer-grense for setområdet basert på 70% av radius og setestørrelsen
+      let seatRectHeight = this.cellSize * 0.8;
+      for (let i = 0; i < table.numSeats; i++) {
+        let boundaryAngle;
+
+        // Hvis det er to seter, tegnes to vertikale linjer
+        if (table.numSeats === 2) {
+          boundaryAngle = (i === 0) ? Math.PI / 2 : -Math.PI / 2;
+        } else {
+          boundaryAngle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2 + (Math.PI / table.numSeats);
+        }
+      
+        let innerDistance = 0;
+        let outerDistance = radius * 0.6 + (seatRectHeight / 2);
+        let bx1 = cx + innerDistance * Math.cos(boundaryAngle);
+        let by1 = cy + innerDistance * Math.sin(boundaryAngle);
+        let bx2 = cx + outerDistance * Math.cos(boundaryAngle);
+        let by2 = cy + outerDistance * Math.sin(boundaryAngle);
+      
+        this.ctx.beginPath();
+        this.ctx.moveTo(bx1, by1);
+        this.ctx.lineTo(bx2, by2);
+        this.ctx.strokeStyle = this.borderColor;
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+      }
+
+      // Tegn sletteikon for bordet
+      if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
+        this.ctx.fillStyle = 'red';
+        this.ctx.fillRect(tableX + tableWidth - this.deleteIconSize, tableY, this.deleteIconSize, this.deleteIconSize);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText('x', tableX + tableWidth - this.deleteIconSize / 2, tableY + this.deleteIconSize / 2);
+      }
+    });
 
 
     // Tegn merkelapper
@@ -455,7 +480,7 @@ for (let i = 0; i < table.numSeats; i++) {
       let tableHeight = 2 * this.cellSize;
       if (this.isPointInRect(pos.x, pos.y, tableX, tableY, tableWidth, tableHeight)) {
         if (pos.x >= tableX + tableWidth - this.deleteIconSize && pos.x <= tableX + tableWidth &&
-            pos.y >= tableY && pos.y <= tableY + this.deleteIconSize) {
+          pos.y >= tableY && pos.y <= tableY + this.deleteIconSize) {
           this.roundtables.splice(i, 1);
           unsavedChanges = true;
           this.draw();
@@ -476,32 +501,32 @@ for (let i = 0; i < table.numSeats; i++) {
       let other = this.others[i];
       // Sjekk om museklikket er innenfor merkelappens rektangel
       if (this.isPointInRect(pos.x, pos.y, other.x, other.y, other.width, other.height)) {
-      // Sjekk om museklikket er på sletteikonet
-      if (pos.x >= other.x + other.width - this.deleteIconSize && pos.x <= other.x + other.width &&
-        pos.y >= other.y && pos.y <= other.y + this.deleteIconSize) {
-        this.others.splice(i, 1);
+        // Sjekk om museklikket er på sletteikonet
+        if (pos.x >= other.x + other.width - this.deleteIconSize && pos.x <= other.x + other.width &&
+          pos.y >= other.y && pos.y <= other.y + this.deleteIconSize) {
+          this.others.splice(i, 1);
+          unsavedChanges = true;
+          this.draw();
+          return;
+        }
+        const handleSize = 10;
+        // Sjekk om museklikket er på resize-håndtaket
+        if (pos.x >= other.x + other.width - handleSize && pos.y >= other.y + other.height - handleSize) {
+          other.resizing = true;
+          other.resizeStartWidth = other.width;
+          other.resizeStartHeight = other.height;
+          other.resizeStartX = pos.x;
+          other.resizeStartY = pos.y;
+        } else {
+          // Start dragging av merkelappen
+          other.dragging = true;
+          other.dragOffsetX = pos.x - other.x;
+          other.dragOffsetY = pos.y - other.y;
+        }
         unsavedChanges = true;
+        this.activeOther = other;
         this.draw();
         return;
-      }
-      const handleSize = 10;
-      // Sjekk om museklikket er på resize-håndtaket
-      if (pos.x >= other.x + other.width - handleSize && pos.y >= other.y + other.height - handleSize) {
-        other.resizing = true;
-        other.resizeStartWidth = other.width;
-        other.resizeStartHeight = other.height;
-        other.resizeStartX = pos.x;
-        other.resizeStartY = pos.y;
-      } else {
-        // Start dragging av merkelappen
-        other.dragging = true;
-        other.dragOffsetX = pos.x - other.x;
-        other.dragOffsetY = pos.y - other.y;
-      }
-      unsavedChanges = true;
-      this.activeOther = other;
-      this.draw();
-      return;
       }
     }
 
@@ -513,7 +538,7 @@ for (let i = 0; i < table.numSeats; i++) {
       let cellX = desk.gridX * this.cellSize;
       let cellY = desk.gridY * this.cellSize;
       if (pos.x >= cellX + this.cellSize - this.deleteIconSize && pos.x <= cellX + this.cellSize &&
-          pos.y >= cellY && pos.y <= cellY + this.deleteIconSize) {
+        pos.y >= cellY && pos.y <= cellY + this.deleteIconSize) {
         this.desks = this.desks.filter(d => d !== desk);
         unsavedChanges = true;
         this.draw();
@@ -806,17 +831,17 @@ function getElementsBoundingBox() {
 function exportImage() {
   isExporting = true;
   grid.draw();
-  
+
   let box = getElementsBoundingBox();
   let offscreen = document.createElement("canvas");
   offscreen.width = box.width;
   offscreen.height = box.height;
   let ctxOff = offscreen.getContext("2d");
   ctxOff.drawImage(canvas, box.minX, box.minY, box.width, box.height, 0, 0, box.width, box.height);
-  
+
   isExporting = false;
   grid.draw();
-  
+
   let link = document.createElement("a");
   link.download = "klassekart.png";
   link.href = offscreen.toDataURL("image/png");
@@ -826,17 +851,17 @@ function exportImage() {
 function copyImage() {
   isExporting = true;
   grid.draw();
-  
+
   let box = getElementsBoundingBox();
   let offscreen = document.createElement("canvas");
   offscreen.width = box.width;
   offscreen.height = box.height;
   let ctxOff = offscreen.getContext("2d");
   ctxOff.drawImage(canvas, box.minX, box.minY, box.width, box.height, 0, 0, box.width, box.height);
-  
+
   isExporting = false;
   grid.draw();
-  
+
   offscreen.toBlob(blob => {
     const item = new ClipboardItem({ "image/png": blob });
     navigator.clipboard.write([item]).then(() => {
@@ -852,7 +877,7 @@ function updateClassDropdown() {
   const savedClasses = JSON.parse(localStorage.getItem("classes")) || {};
   const dropdown = document.querySelector(".dropdown-options");
   dropdown.innerHTML = Object.keys(savedClasses).map(c => `<li data-value="${c}" onclick="selectOption(this)">${c}</li>`).join('');
-  
+
   // Hvis det er en valgt klasse, vis den i den valgte dropdownen
   if (currentClass && savedClasses[currentClass]) {
     document.querySelector('.dropdown-selected').textContent = currentClass;
@@ -961,13 +986,13 @@ function showContextMenu(e) {
 }
 
 document.querySelectorAll("#contextMenu li").forEach(item => {
-  item.addEventListener("click", function(e) {
+  item.addEventListener("click", function (e) {
     e.stopPropagation();
     const type = this.getAttribute("data-type");
     const menu = document.getElementById("contextMenu");
     const x = parseFloat(menu.dataset.x);
     const y = parseFloat(menu.dataset.y);
-    
+
     if (type === "roundtable") {
       console.log("viser undermeny for rundbord!")
       showRoundtableSubMenu(e, x, y);
@@ -1007,7 +1032,7 @@ function showRoundtableSubMenu(e, x, y) {
 }
 
 document.querySelectorAll("#roundtableSubMenu li").forEach(item => {
-  item.addEventListener("click", function() {
+  item.addEventListener("click", function () {
     const numSeats = parseInt(this.getAttribute("data-seats"));
     const subMenu = document.getElementById("roundtableSubMenu");
     const x = parseFloat(subMenu.dataset.x);
@@ -1017,7 +1042,7 @@ document.querySelectorAll("#roundtableSubMenu li").forEach(item => {
   });
 });
 
-document.addEventListener("click", function(e) {
+document.addEventListener("click", function (e) {
   const menu1 = document.getElementById("contextMenu");
   const menu2 = document.getElementById("groupContextMenu");
   const subMenu = document.getElementById("roundtableSubMenu");
