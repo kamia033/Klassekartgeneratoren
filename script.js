@@ -13,6 +13,7 @@ class Desk {
     this.dragging = false;
     this.color = null; // Bruker grid.deskColor hvis null
     this.marked = false; // Når true, skal ingen elev få denne pulten
+    
   }
 }
 
@@ -134,17 +135,42 @@ function getDeskGroups() {
 }
 
 function sparkleItUp() {
-  const palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
-  let groups = getDeskGroups();
-  groups.forEach(group => {
-    const color = palette[Math.floor(Math.random() * palette.length)];
-    group.forEach(desk => { desk.color = color; });
-  });
-  grid.roundtables.forEach(table => { table.color = palette[Math.floor(Math.random() * palette.length)]; });
-  unsavedChanges = true;
-  grid.draw();
-}
-
+  
+    let palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
+    let emojis = grid.emojis;
+    let groups = getDeskGroups();
+  
+    palette = palette.sort(() => Math.random() - 0.5);
+    emojis = emojis.sort(() => Math.random() - 0.5);
+  
+    let groupEmojis = [];
+    groups.forEach((group, index) => {
+      if (index < palette.length) {
+        const color = palette[index];
+        const emoji = emojis[index % emojis.length];
+        group.forEach(desk => { desk.color = color; });
+  
+        // Bruk gridX/gridY for posisjon
+        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length;
+        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length;
+  
+        groupEmojis.push({ text: emoji, x: centerX, y: centerY });
+      }
+    });
+  
+    grid.groupEmojis = groupEmojis; // Lagre for bruk i draw()
+    
+    // Tildel unike farger til rundbordene også (som før)
+    let availableColors = [...palette];
+    grid.roundtables.forEach(table => {
+      if (availableColors.length > 0) {
+        table.color = availableColors.pop();
+      }
+    });
+  
+    unsavedChanges = true;
+    grid.draw();
+  }
 class ClassroomGrid {
   constructor(canvas) {
     this.canvas = canvas;
@@ -154,7 +180,7 @@ class ClassroomGrid {
     this.cellSize = 50;
 
     this.numCols = 30;
-    this.numRows = 15;
+    this.numRows = 20;
     this.gridColor = "#E0E0E0";
     this.deskColor = "#FF0000";
     this.occupiedColor = this.deskColor;
@@ -169,6 +195,7 @@ class ClassroomGrid {
     this.activeOther = null;
     this.activeRoundtable = null;
     this.mousePos = { x: 0, y: 0 };
+    this.emojis = ['🍎', '🚀', '🎸', '🐱', '🌟', '🎨', '⚽', '🎭', '🐉', '🎵'];
 
     this.updateCanvasSize();
 
@@ -285,11 +312,13 @@ class ClassroomGrid {
       //tegner tekst i midten av synlig canvas
       this.ctx.fillText(
         "Velg klasse fra menyen til høyre",
-        width / 2,
-        height / 2
+        document.getElementById("canvas-container").getBoundingClientRect().width / 2,
+        document.getElementById("canvas-container").getBoundingClientRect().height / 2
       );
     }
+    else{
 
+    
     // Tegn elevpulter
     this.desks.forEach(desk => {
       let x = desk.gridX * this.cellSize;
@@ -313,7 +342,7 @@ class ClassroomGrid {
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText('x', x + this.cellSize - this.deleteIconSize / 2, y + this.deleteIconSize / 2);
       }
-      if (desk.marked) {
+      if (!isExporting && desk.marked) {
         this.ctx.strokeStyle = 'blue';
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
@@ -323,7 +352,14 @@ class ClassroomGrid {
         this.ctx.lineTo(x + 5, y + this.cellSize - 5);
         this.ctx.stroke();
       }
+
+
+      
     });
+
+
+    // Tegn emojier i midten av gruppene
+  
 
     // Tegn rundbord med variabelt antall seter
     this.roundtables.forEach(table => {
@@ -399,19 +435,7 @@ class ClassroomGrid {
 
         }
 
-        // Hvis plassen er markert, tegn et blått kryss
-        if (!isExporting && table.markedSeats[i]) {
-          this.ctx.strokeStyle = 'blue';
-          this.ctx.lineWidth = 3;
-          this.ctx.beginPath();
-          this.ctx.moveTo(seatX + 5, seatY + 5);
-          this.ctx.lineTo(seatX + seatRectWidth - 5, seatY + seatRectHeight - 5);
-          this.ctx.moveTo(seatX + seatRectWidth - 5, seatY + 5);
-          this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
-          this.ctx.stroke();
-        }
-
-        console.log("currentClass: " + currentClass);
+        
 
 
       }
@@ -419,7 +443,7 @@ class ClassroomGrid {
       // Tegn radiale linjer som separerer setene
       // Her definerer vi inner- og outer-grense for setområdet basert på 70% av radius og setestørrelsen
       let seatRectHeight = this.cellSize * 0.8;
-      for (let i = 0; i < table.numSeats; i++) {
+      for (let i = 0; i < table.numSeats; i++) { 
         let boundaryAngle;
 
         // Hvis det er to seter, tegnes to vertikale linjer
@@ -453,6 +477,7 @@ class ClassroomGrid {
         this.ctx.stroke();
       }
 
+      
       // Tegn sletteikon for bordet
       if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
         this.ctx.fillStyle = 'red';
@@ -464,6 +489,20 @@ class ClassroomGrid {
         this.ctx.fillText('x', tableX + tableWidth - this.deleteIconSize / 2, tableY + this.deleteIconSize / 2);
       }
     });
+
+    let groups = getDeskGroups();
+     
+  this.ctx.font = '24px Arial';
+  this.ctx.textAlign = 'center';
+  this.ctx.textBaseline = 'middle';
+
+  groups.forEach(group => {
+    if (group.emoji) {
+      console.log("Tegner emoji");
+      this.ctx.fillText(group.emoji.text, group.emoji.x, group.emoji.y);
+    }
+  });
+
 
 
     // Tegn merkelapper
@@ -477,13 +516,13 @@ class ClassroomGrid {
       if (this.isPointInRect(this.mousePos.x, this.mousePos.y, other.x, other.y, other.width, other.height)) {
         const handleSize = 10;
         this.ctx.save();
-        if (this.mousePos.x >= other.x + other.width - handleSize && this.mousePos.y >= other.y + other.height - handleSize) {
+        
           this.ctx.strokeStyle = 'blue';
           this.ctx.lineWidth = 2;
           this.ctx.strokeRect(other.x, other.y, other.width, other.height);
           this.ctx.fillStyle = 'blue';
           this.ctx.fillRect(other.x + other.width - handleSize, other.y + other.height - handleSize, handleSize, handleSize);
-        } else {
+        
           this.ctx.fillStyle = 'red';
           this.ctx.fillRect(other.x + other.width - this.deleteIconSize, other.y, this.deleteIconSize, this.deleteIconSize);
           this.ctx.fillStyle = 'white';
@@ -491,10 +530,11 @@ class ClassroomGrid {
           this.ctx.textAlign = 'center';
           this.ctx.textBaseline = 'middle';
           this.ctx.fillText('x', other.x + other.width - this.deleteIconSize / 2, other.y + this.deleteIconSize / 2);
-        }
+        
         this.ctx.restore();
       }
     });
+  }
   }
 
   isPointInRect(px, py, rx, ry, rw, rh) {
@@ -871,7 +911,7 @@ function getElementsBoundingBox() {
 function exportImage() {
   isExporting = true;
   grid.draw();
-
+  
   let box = getElementsBoundingBox();
   let offscreen = document.createElement("canvas");
   offscreen.width = box.width;
@@ -879,7 +919,10 @@ function exportImage() {
   let ctxOff = offscreen.getContext("2d");
   ctxOff.drawImage(canvas, box.minX, box.minY, box.width, box.height, 0, 0, box.width, box.height);
 
-  isExporting = false;
+  isExporting=false;
+
+
+ 
   grid.draw();
 
   let link = document.createElement("a");
@@ -890,6 +933,8 @@ function exportImage() {
 
 function copyImage() {
   isExporting = true;
+  let tempCellSize = grid.cellSize;
+  updateCellSize(80);
   grid.draw();
 
   let box = getElementsBoundingBox();
@@ -899,7 +944,8 @@ function copyImage() {
   let ctxOff = offscreen.getContext("2d");
   ctxOff.drawImage(canvas, box.minX, box.minY, box.width, box.height, 0, 0, box.width, box.height);
 
-  isExporting = false;
+  isExporting=false;
+  updateCellSize(tempCellSize);
   grid.draw();
 
   offscreen.toBlob(blob => {

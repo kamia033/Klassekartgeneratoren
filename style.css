@@ -35,7 +35,7 @@ body {
   gap: 10px;
   width: 80%;
 }
-.canvas-container {
+#canvas-container {
   position: relative;
   width: 60vw;
   height: 82vh;
@@ -58,8 +58,10 @@ canvas {
           /* Gjør at elementene kan bryte linje ved behov */
 align-items: center;
 justify-content: space-between;
-padding: 1rem;
+padding-top: 0.5rem;
 box-sizing: border-box;
+margin: 0;
+margin-bottom: 5px;
 }
 #cellSizeSlider {
   width: 80%;
