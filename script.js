@@ -247,7 +247,7 @@ class ClassroomGrid {
   }
 
   draw() {
-    
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -282,8 +282,8 @@ class ClassroomGrid {
       this.ctx.textBaseline = "middle";
       this.ctx.fillText(
         "Velg klasse fra menyen til høyre",
-        300 ,
-      200
+        300,
+        200
       );
     }
 
@@ -348,7 +348,13 @@ class ClassroomGrid {
         if (table.numSeats === 2) {
           // For to seter: plasser det ene til høyre (0 rad) og det andre til venstre (π rad)
           angle = (i === 0) ? 0 : Math.PI;
-        } else {
+        }
+        else if (table.numSeats === 4) {
+
+          angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
+        }
+
+        else {
           // Standard fordeling med første sete øverst
           angle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
         }
@@ -362,10 +368,32 @@ class ClassroomGrid {
         let seatY = seatCenterY - seatRectHeight / 2;
 
         // Hvis det finnes en student, tegn teksten horisontalt
+
         if (table.students[i]) {
           let textColor = getContrastColor(tableColor);
           // Her brukes drawFittedText uten rotasjon (rotasjonsvinkelen er 0)
-          drawFittedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, textColor, "Arial", "normal");
+
+          //hvis det er fire seter, skal teksten tegnes med 45 graders vinkel slik at teksten er mest mulig leselig
+
+          if (table.numSeats === 4) {
+
+
+            const angles = [-Math.PI / 4, Math.PI / 4, Math.PI / 4, -Math.PI / 4];
+            for (let i = 0; i < 4; i++) {
+              seatX = tableX + (i % 2) * this.cellSize;
+              seatY = tableY + (i < 2 ? 0 : this.cellSize);
+              if (table.students[i]) {
+                let textColor = getContrastColor(tableColor);
+                drawRotatedText(this.ctx, table.students[i], seatX, seatY, this.cellSize, this.cellSize, angles[i], textColor, "Arial", "normal");
+              }
+            }
+
+          }
+          else {
+            drawFittedText(this.ctx, table.students[i], seatX, seatY, seatRectWidth, seatRectHeight, textColor, "Arial", "normal");
+          }
+
+
         }
 
         // Hvis plassen er markert, tegn et blått kryss
@@ -379,9 +407,9 @@ class ClassroomGrid {
           this.ctx.lineTo(seatX + 5, seatY + seatRectHeight - 5);
           this.ctx.stroke();
         }
-        
+
         console.log("currentClass: " + currentClass);
-        
+
 
       }
 
@@ -394,17 +422,26 @@ class ClassroomGrid {
         // Hvis det er to seter, tegnes to vertikale linjer
         if (table.numSeats === 2) {
           boundaryAngle = (i === 0) ? Math.PI / 2 : -Math.PI / 2;
-        } else {
+        }
+        else if (table.numSeats === 4) {
+          //hvis det er 4 seter, tegnes 4 linjer
+          boundaryAngle = (2 * Math.PI / table.numSeats) * i - Math.PI / 4 + (Math.PI / table.numSeats);
+        }
+
+
+
+        else {
           boundaryAngle = (2 * Math.PI / table.numSeats) * i - Math.PI / 2 + (Math.PI / table.numSeats);
         }
-      
+
+
         let innerDistance = 0;
         let outerDistance = radius * 0.6 + (seatRectHeight / 2);
         let bx1 = cx + innerDistance * Math.cos(boundaryAngle);
         let by1 = cy + innerDistance * Math.sin(boundaryAngle);
         let bx2 = cx + outerDistance * Math.cos(boundaryAngle);
         let by2 = cy + outerDistance * Math.sin(boundaryAngle);
-      
+
         this.ctx.beginPath();
         this.ctx.moveTo(bx1, by1);
         this.ctx.lineTo(bx2, by2);
