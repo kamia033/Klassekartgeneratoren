@@ -51,9 +51,15 @@ canvas {
 .canvas-controls {
   display: flex;
   width: 100%;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   justify-content: space-between;
+
+          /* Gjør at elementene kan bryte linje ved behov */
+align-items: center;
+justify-content: space-between;
+padding: 1rem;
+box-sizing: border-box;
 }
 #cellSizeSlider {
   width: 80%;
@@ -70,7 +76,17 @@ canvas {
   background-color: #fff;
   border: 1px solid #ccc;
   padding: 10px;
+  height: 50px;
   border-radius: 4px;
+  margin-top: 0px;
+}
+.export-buttons{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 10px;
+  justify-content: space-between;
+  width: 40%;
 }
 .slider-container label {
   font-size: 14px;
@@ -83,6 +99,8 @@ canvas {
   gap: 10px;
   width: 20%;
 }
+
+
 .save-section button {
   margin-top: 5px;
   width: 100%;
@@ -203,10 +221,16 @@ input[type="text"] {
   cursor: pointer;
 }
 
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
 
 #roundtableSubMenu {
   display: none;
   position: absolute;
+  list-style-type: none;
   z-index: 1001;
   background-color: white;
   border: 1px solid #ccc;

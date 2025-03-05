@@ -273,6 +273,8 @@ class ClassroomGrid {
     }
 
     if (currentClass == "") {
+      let height = this.canvas.height*this.cellSize/this.numRows/2;
+      let width = document.getElementById("gridCanvas").width;
       this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Halvtransparent svart
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -280,10 +282,11 @@ class ClassroomGrid {
       this.ctx.font = "25px Roboto";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
+      //tegner tekst i midten av synlig canvas
       this.ctx.fillText(
         "Velg klasse fra menyen til høyre",
-        300,
-        200
+        width / 2,
+        height / 2
       );
     }
 
@@ -1045,7 +1048,7 @@ function showRoundtableSubMenu(e, x, y) {
   const subMenu = document.getElementById("roundtableSubMenu");
 
   // Offset for å plassere undermenyen til høyre og litt ned fra hovedmenyen
-  const offsetX = 50;
+  const offsetX = 20;
   const offsetY = 0;
 
   let left = e.pageX + offsetX;
@@ -1064,6 +1067,7 @@ function showRoundtableSubMenu(e, x, y) {
   subMenu.style.left = left + "px";
   subMenu.style.top = top + "px";
   subMenu.style.display = "block";
+  subMenu.style.listStyleType = "none";
   subMenu.dataset.x = x;
   subMenu.dataset.y = y;
 }
