@@ -147,14 +147,14 @@ function sparkleItUp() {
     groups.forEach((group, index) => {
       if (index < palette.length) {
         const color = palette[index];
-        const emoji = emojis[index % emojis.length];
-        group.forEach(desk => { desk.color = color; });
-  
+        const emoji = emojis[0];
+        group.forEach(group => { group.color = color; });
+        console.log("Emoji:", emoji);
         // Bruk gridX/gridY for posisjon
-        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length;
-        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length;
+        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length + grid.cellSize/2;
+        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length + grid.cellSize/2;
   
-        groupEmojis.push({ text: emoji, x: centerX, y: centerY });
+        //groupEmojis.push({ text: emoji, x: centerX, y: centerY });
       }
     });
   
@@ -196,6 +196,7 @@ class ClassroomGrid {
     this.activeRoundtable = null;
     this.mousePos = { x: 0, y: 0 };
     this.emojis = ['🍎', '🚀', '🎸', '🐱', '🌟', '🎨', '⚽', '🎭', '🐉', '🎵'];
+    this.groupEmojis = [];
 
     this.updateCanvasSize();
 
@@ -359,6 +360,12 @@ class ClassroomGrid {
 
 
     // Tegn emojier i midten av gruppene
+    this.groupEmojis.forEach(emoji => {
+      this.ctx.font = '24px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(emoji.text, emoji.x, emoji.y);
+    });
   
 
     // Tegn rundbord med variabelt antall seter
@@ -502,7 +509,6 @@ class ClassroomGrid {
       this.ctx.fillText(group.emoji.text, group.emoji.x, group.emoji.y);
     }
   });
-
 
 
     // Tegn merkelapper
