@@ -389,6 +389,11 @@ class ClassroomGrid {
       this.ctx.stroke();
 
       // Tegn seter jevnt fordelt rundt bordet
+
+      
+      
+      if(table.numSeats > 0){
+
       for (let i = 0; i < table.numSeats; i++) {
         let angle;
         if (table.numSeats === 2) {
@@ -484,7 +489,7 @@ class ClassroomGrid {
         this.ctx.stroke();
       }
 
-      
+    }
       // Tegn sletteikon for bordet
       if (this.isPointInRect(this.mousePos.x, this.mousePos.y, tableX, tableY, tableWidth, tableHeight)) {
         this.ctx.fillStyle = 'red';
@@ -1127,6 +1132,7 @@ function showRoundtableSubMenu(e, x, y) {
 document.querySelectorAll("#roundtableSubMenu li").forEach(item => {
   item.addEventListener("click", function () {
     const numSeats = parseInt(this.getAttribute("data-seats"));
+    console.log(numSeats)
     const subMenu = document.getElementById("roundtableSubMenu");
     const x = parseFloat(subMenu.dataset.x);
     const y = parseFloat(subMenu.dataset.y);
@@ -1151,6 +1157,7 @@ document.addEventListener("click", function (e) {
 });
 
 function addElementAt(type, x, y, numSeats) {
+  
   if (type === "desk") {
     let gridX = Math.floor(x / grid.cellSize);
     let gridY = Math.floor(y / grid.cellSize);
@@ -1165,7 +1172,7 @@ function addElementAt(type, x, y, numSeats) {
     let gridX = Math.floor(x / grid.cellSize);
     let gridY = Math.floor(y / grid.cellSize);
     // numSeats kommer fra undermenyen; hvis ikke spesifisert, bruk 4 som default
-    grid.roundtables.push(new RoundTable(gridX, gridY, numSeats || 4));
+    grid.roundtables.push(new RoundTable(gridX, gridY, numSeats));
   }
   unsavedChanges = true;
   grid.draw();
