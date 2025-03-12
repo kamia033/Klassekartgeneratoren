@@ -27,14 +27,10 @@
     </div>
     <!-- Høyre panel -->
     <div class="controls">
-      <div id="fact-container" class="save-section">
-          <button id ="prev"class="fact-btn" onclick="prevFunfact()">◀</button>
-          <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
-          <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
-      </div>
+      
       <div class="save-section">
         <div class="dropdown">
-          <div class="dropdown-selected" onclick="toggleDropdown()">Velg en klasse</div>
+          <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg en klasse</div>
           <ul class="dropdown-options">
             <!-- Lagrede klasser fylles inn dynamisk -->
           </ul>
@@ -42,13 +38,19 @@
         
         
         
-        <button onclick="createNewClass()">Opprett ny klasse</button>
-        <button onclick="saveClass()">Lagre klasse</button>
-        <button onclick="deleteClass()">Slett klasse</button>
+        <button onclick="createNewClass()">⭐ Opprett ny klasse</button>
+        <button onclick="saveClass()">💾 Lagre klasse</button>
+        <button onclick="deleteClass()">❌ Slett klasse</button>
       </div>
       <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)"></textarea>
       <button onclick="assignStudents()">Plasser elever tilfeldig</button>
       <div id="assignmentWarning">⚠️ Ikke alle elever har blitt tildelt plass!</div>
+      <button onclick="sparkleItUp()" style="margin-bottom: 30px;">✨ Sparkle it up ✨</button>
+      <div id="fact-container" class="save-section">
+        <button id ="prev"class="fact-btn" onclick="prevFunfact()">◀</button>
+        <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
+        <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
+    </div>
       <!-- Fargevelger med sirkler -->
       <div class="color-picker" style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
         <p>Velg farge på pultene:</p>
@@ -64,7 +66,7 @@
         <button class="color-button" onclick="setElementColor('#BE0AFF')" style="background-color:#BE0AFF;"></button>
       </div>
       <!-- Sparkle it up -->
-      <button onclick="sparkleItUp()" style="margin-bottom: 30px;">Sparkle it up</button>
+      
     </div>
   </div>
   
