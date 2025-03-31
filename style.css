@@ -408,3 +408,48 @@ footer{
   text-align: center;
  
 }
+
+
+
+.toggle-box {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  left: 5px;
+  transition: left 0.3s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-container.active {
+  background: #4caf50;
+}
+
+.toggle-container.active .toggle-circle {
+  left: 75px;
+}
+#mode-box{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  background-color:var(--font_light);
+  border-radius: 10px;
+}
+#active-mode{
+  background-color: var(--accent);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  scale: 1.1;
+  transition: left 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.mode-button{
+  width:50%;
+  padding: 14px;
+  border-radius: 10px;
+  margin:0;
+  font-weight: bold;
+  font-size: 16px;
+  transition: transform 0.3s ease-in-out;
+}

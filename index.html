@@ -27,7 +27,13 @@
     </div>
     <!-- Høyre panel -->
     <div class="controls">
-      
+      <div id="mode-slider" class="save-section">
+        <label for="mode">Modus:</label>
+        <button id="mode-box"onclick="changeMode()">
+          <div id="active-mode" class="mode-button">Klasse</div>
+          <div id="inactive-mode" class="mode-button">Voksen</div>
+        </button>
+      </div>
       <div class="save-section">
         <div class="dropdown">
           <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg en klasse</div>
@@ -76,6 +82,7 @@
       <li data-type="desk">Elevpult</li>
       <li data-type="merkelapp">Merkelapp</li>
       <li data-type="roundtable">Rundbord</li>
+      <li data-type="blackboard">Tavle</li>
     </ul>
   </div>
   
@@ -112,7 +119,7 @@
     <a href="/info.html">Les om fremtidige oppdateringer og vanlig stilte spørsmål her. Du kan også sende feedback på Klassekartgeneratoren 💯</a>
     </footer>
   
-  <script src="script.js"></script>
+  <script type="module" src="main.js"></script>
   <script src="script_facts.js"></script>
 </body>
 </html>

@@ -18,7 +18,7 @@ class Desk {
 }
 
 class Blackboard {
-  constructor(x, y, width = 2, height = 2) {
+  constructor(x, y, width = 2, height = 2, numStudents) {
     this.type = "blackboard";
     this.x = x;
     this.y = y;
@@ -26,7 +26,7 @@ class Blackboard {
     this.height = height;
     this.dragging = true;
     this.color = "#000000";
-    this.numStudents = 0;
+    this.numStudents = numStudents;
     this.assignedStudents = [];
   }
 
@@ -212,11 +212,9 @@ class ClassroomGrid {
     this.desks = [];
     this.others = [];
     this.roundtables = [];
-    this.blackboards = [];
     this.activeDesk = null;
     this.activeOther = null;
     this.activeRoundtable = null;
-    this.activeBlackboard = null;
     this.mousePos = { x: 0, y: 0 };
     this.emojis = ['🍎', '🚀', '🎸', '🐱', '🌟', '🎨', '⚽', '🎭', '🐉', '🎵'];
     this.groupEmojis = [];
@@ -551,7 +549,7 @@ class ClassroomGrid {
       this.ctx.strokeRect(x, y, width, height);
       let textColor = getContrastColor(fill);
       //draw students name next to blackboard
-
+      
 
       drawFittedText(this.ctx, blackboard.text, x, y, width, height, textColor, "Arial", "normal");
     });

@@ -27,3 +27,10 @@ document.getElementById("prev").addEventListener("click", prevFunfact);
 
 setInterval(nextFunfact, 10000); // Bytter funfact hvert 10. sekund
 showFunfact(currentIndex);
+
+function changeMode(){
+    let btn1 = document.getElementById("active-mode");
+    let btn2 = document.getElementById("inactive-mode");
+    btn1.setAttribute("id", "inactive-mode");
+    btn2.setAttribute("id", "active-mode");
+}
