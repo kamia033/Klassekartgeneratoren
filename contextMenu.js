@@ -98,6 +98,7 @@
         return;
       }
       grid.desks.push(new Desk(gridX, gridY));
+    
     } else if (type === "merkelapp") {
       grid.others.push(new Merkelapp(x, y));
     } else if (type === "roundtable") {

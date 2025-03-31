@@ -1,5 +1,6 @@
 // classes.js
 import * as utils from './utils.js';
+import * as contextMenu from './contextMenu.js';
 
 
 export class Desk {
@@ -155,7 +156,7 @@ export class Blackboard {
           this.draw();
           return;
         }
-        utils.showContextMenu(e);
+        contextMenu.showContextMenu(e);
       });
   
       this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
@@ -683,7 +684,7 @@ export class Blackboard {
       // Elevpult
       let gridX = Math.floor(pos.x / this.cellSize);
       let gridY = Math.floor(pos.y / this.cellSize);
-      let desk = this.desks.find(d => d.gridX === gridX && d.gridY === gridY && d.student);
+      let desk = this.desks.find(d => d.gridX === gridX && d.gridY === gridY /*&& d.student*/);
       if (desk) {
         let newName = prompt("Endre elevnavn:", desk.student);
         if (newName !== null) {
@@ -695,6 +696,12 @@ export class Blackboard {
               names[desk.studentIndex] = newName;
               studentListElem.value = names.join("\n");
             }
+          }
+          else {
+            let studentListElem = document.getElementById("studentList");
+            let names = studentListElem.value.split("\n");
+            names.push(newName);
+            studentListElem.value = names.join("\n");
           }
           this.unsavedChanges = true;
           this.draw();
@@ -753,7 +760,9 @@ export class Blackboard {
           available.push({ type: "roundtable", table: table, seat: i });
         }
       });
-      available.sort(() => Math.random() - 0.5);
+
+      utils.shuffleArray(available);
+      //available.sort(() => Math.random() - 0.5);
       studentNames = studentNames.filter(name => name.trim() !== "");
       for (let i = 0; i < Math.min(studentNames.length, available.length); i++) {
         if (available[i].type === "desk") {
@@ -777,6 +786,7 @@ export class Blackboard {
         desks: JSON.parse(JSON.stringify(this.desks)),
         others: JSON.parse(JSON.stringify(this.others)),
         roundtables: JSON.parse(JSON.stringify(this.roundtables)),
+        blackboards: JSON.parse(JSON.stringify(this.blackboards)),
         studentList: document.getElementById("studentList").value
       };
     }
@@ -792,6 +802,7 @@ export class Blackboard {
       this.desks = (state.desks || []).map(d => Object.assign(new Desk(d.gridX, d.gridY), d));
       this.others = (state.others || []).map(o => Object.assign(new Merkelapp(o.x, o.y, o.width, o.height, o.text), o));
       this.roundtables = (state.roundtables || []).map(t => Object.assign(new RoundTable(t.gridX, t.gridY, t.numSeats), t));
+      this.blackboards = (state.blackboards || []).map(b => Object.assign(new Blackboard(b.x, b.y, b.width, b.height), b));
       if (state.studentList !== undefined) {
         document.getElementById("studentList").value = state.studentList;
       }
