@@ -11,8 +11,14 @@
   <div class="container">
     <!-- Venstre panel -->
     <div class="left-panel">
+      <div id="fullscreen-button"> [ ] Fullskjerm</div>
       <div id="canvas-container">
-        <canvas id="gridCanvas"></canvas>
+        
+        <canvas id="gridCanvas">
+          
+        </canvas>
+
+        
       </div>
       <div class="canvas-controls">
         <div class="slider-container">
@@ -76,6 +82,9 @@
     </div>
   </div>
   
+  <!-- Fullskjermknapp -->
+  
+
   <!-- Standard kontekstmeny -->
   <div id="contextMenu">
     <ul>
@@ -113,6 +122,9 @@
       <li data-color="#BE0AFF"><div class="group-color" style="background-color:#BE0AFF;"></div></li>
     </ul>
   </div>
+
+  
+  <canvas id ="offScreenCanvas" style="display:none;"></canvas>
   
   <!-- Footer -->
   <footer>
@@ -121,5 +133,6 @@
   
   <script type="module" src="main.js"></script>
   <script src="funfacts.js"></script>
+  <script type="module" src="utils.js"></script>
 </body>
 </html>

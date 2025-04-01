@@ -30,6 +30,7 @@ body {
 }
 /* Venstre panel */
 .left-panel {
+  position: relative;
   flex: 2;
   display: flex;
   flex-direction: column;
@@ -44,6 +45,7 @@ body {
 }
 #canvas-container {
   position: relative;
+  display: inline-block;
   width: 73vw;
   height: 82vh;
   overflow: auto;
@@ -289,6 +291,7 @@ ul {
 
 /* Footer */
 footer {
+  position: absolute;
   text-align: center;
   margin-top: 20px;
   padding-top: 10px;
@@ -467,4 +470,32 @@ footer{
   font-weight: bold;
   font-size: 16px;
   transition: transform 0.3s ease-in-out;
+}
+
+
+#fullscreen-button{
+  position:absolute;
+  top: 0; /* Juster denne verdien etter ønsket avstand fra toppen */
+  right: -2px; /* Juster denne verdien etter ønsket avstand fra høyre */
+  width: 100px;
+  height: 30px;
+  padding-top: 10px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  text-wrap: nowrap;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  z-index: 1000;
+  margin-right: 0px;
+  margin-top: 0px;
+  overflow-x: visible;
+}
+
+#fullscreen-button:hover{
+  background-color: rgba(0, 0, 0, 0.6);
 }

@@ -824,4 +824,29 @@ export default class ClassroomGrid {
     this.unsavedChanges = false;
     this.draw();
   }
+
+  drawFullscreenBtn() {
+    //tegner fullskjermknapp i canvas
+    const btnSize = 30;
+    const btnX = this.canvas.width - btnSize - 10;
+    const btnY = 10;
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(btnX, btnY, btnSize, btnSize);
+    this.ctx.fillStyle = "black";
+    this.ctx.font = "bold 20px Arial";
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "middle";
+    this.ctx.fillText("⛶", btnX + btnSize / 2, btnY + btnSize / 2);
+    this.ctx.strokeStyle = "black";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(btnX, btnY, btnSize, btnSize);
+    this.ctx.fillStyle = "black";
+    this.ctx.font = "bold 12px Arial";
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "middle";
+    this.ctx.fillText("Fullscreen", btnX + btnSize / 2, btnY + btnSize + 15);
+    this.ctx.strokeStyle = "black";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(btnX, btnY + btnSize, btnSize, 20);
+  }
 }

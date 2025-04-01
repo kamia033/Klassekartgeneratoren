@@ -1,4 +1,5 @@
 import ClassroomGrid from './classes.js';
+import * as classes from './classes.js';
 import * as utils from './utils.js';
 import * as contextMenu from './contextMenu.js';
 
@@ -11,10 +12,10 @@ let isExporting = false;
 utils.updateClassDropdown();
 
 grid.draw();
+grid.drawFullscreenBtn();
 
 // Legg til event listener for fullscreen-knappen
-const fullscreenBtn = document.getElementById("mode-box");
-console.log("Fullscreen button:", fullscreenBtn);
+const fullscreenBtn = document.getElementById("fullscreen-button");
 fullscreenBtn.addEventListener("click", () => {
   console.log("Fullscreen button clicked");
   utils.toggleFullscreen();

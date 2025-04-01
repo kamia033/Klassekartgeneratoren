@@ -375,7 +375,19 @@ function copyImage() {
     }
 
     function enableFullscreen() {
-      const elem = document.documentElement;
+      let tempCellSize = grid.cellSize;
+      updateCellSize(250);
+      grid.draw();
+    
+      let box = getElementsBoundingBox(grid);
+      let offscreen = document.getElementById("offScreenCanvas");
+      offscreen.width = box.width;
+      offscreen.height = box.height;
+      offscreen.style.display = "block";
+      let ctxOff = offscreen.getContext("2d");
+      ctxOff.drawImage(canvas, box.minX, box.minY, box.width, box.height, 0, 0, box.width, box.height);
+      
+      const elem = offscreen;
       if (elem.requestFullscreen) {
         elem.requestFullscreen();
       } else if (elem.mozRequestFullScreen) { // Firefox
@@ -385,9 +397,21 @@ function copyImage() {
       } else if (elem.msRequestFullscreen) { // IE/Edge
         elem.msRequestFullscreen();
       }
+      
     }
+    
+document.addEventListener("fullscreenchange", function() {
+      if (!document.fullscreenElement) {
+        let offscreen = document.getElementById("offScreenCanvas");
+        offscreen.style.display = "none";
+        updateCellSize(60);
+        grid.draw();
+      }
+    });
+
     function disableFullscreen() {
       if (document.exitFullscreen) {
+        
         document.exitFullscreen();
       } else if (document.mozCancelFullScreen) { // Firefox
         document.mozCancelFullScreen();
@@ -407,9 +431,8 @@ function copyImage() {
       }
     }
     
-    
 
-//eksporterer globalt
+    
 
 
 window.exportImage = exportImage;
