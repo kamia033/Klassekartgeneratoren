@@ -74,7 +74,7 @@ export default class ClassroomGrid {
     this.cellSize = 50;
 
     this.numCols = 30;
-    this.numRows = 20;
+    this.numRows = 35;
     this.gridColor = "#E0E0E0";
     this.deskColor = "#FF0000";
     this.occupiedColor = this.deskColor;
@@ -204,9 +204,9 @@ export default class ClassroomGrid {
       let width = document.getElementById("gridCanvas").width;
       this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Halvtransparent svart
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
+      
       this.ctx.fillStyle = "white";
-      this.ctx.font = "25px Roboto";
+      this.ctx.font = "30px 'Segoe UI', sans-serif";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       //tegner tekst i midten av synlig canvas

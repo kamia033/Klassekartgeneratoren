@@ -430,6 +430,7 @@ footer{
 
 
 .toggle-box {
+  display: none;
   width: 40px;
   height: 40px;
   background: white;
@@ -455,6 +456,9 @@ footer{
   padding: 0;
   background-color:var(--font_light);
   border-radius: 10px;
+}
+#mode-slider{
+  display: none;
 }
 #active-mode{
   background-color: var(--accent);
