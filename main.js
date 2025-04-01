@@ -12,7 +12,13 @@ utils.updateClassDropdown();
 
 grid.draw();
 
-
+// Legg til event listener for fullscreen-knappen
+const fullscreenBtn = document.getElementById("mode-box");
+console.log("Fullscreen button:", fullscreenBtn);
+fullscreenBtn.addEventListener("click", () => {
+  console.log("Fullscreen button clicked");
+  utils.toggleFullscreen();
+});
 
 window.grid = grid;
 window.isExporting = isExporting;
