@@ -475,6 +475,7 @@ footer {
 
 #fullscreen-button {
   position: absolute;
+  visibility: none;
   top: 0;
   /* Juster denne verdien etter ønsket avstand fra toppen */
   right: 0px;
@@ -503,6 +504,7 @@ footer {
 }
 .canvas-controls {
   position: absolute;
+  visibility: none;
   bottom: 0;
   left: 0;
   right: 0;
