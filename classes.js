@@ -61,6 +61,7 @@ export class Merkelapp {
     this.crossed = false;
     this.dragging = false;
     this.resizing = false;
+    this.selected = false;
   }
 }
 
@@ -146,7 +147,7 @@ export default class ClassroomGrid {
           let groups = getDeskGroups();
           let group = groups.find(g => g.includes(clickedDesk));
           if (group && group.length >= 2) {
-            showGroupContextMenu(e, group);
+            contextMenu.showGroupContextMenu(e, group);
             return;
           }
         }
@@ -156,6 +157,20 @@ export default class ClassroomGrid {
         this.draw();
         return;
       }
+
+      //sjekk deretter om merkelapp ble trykket ov viser groupcontextmenu
+      let clickedOther = null;
+      for (let other of this.others) {
+        if (this.isPointInRect(pos.x, pos.y, other.x, other.y, other.width, other.height)) {
+          clickedOther = other;
+          break;
+        }
+      }
+      if(clickedOther) {
+        contextMenu.showGroupContextMenu(e, clickedOther);
+      }
+
+
       contextMenu.showContextMenu(e);
     });
 

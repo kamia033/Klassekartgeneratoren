@@ -12,6 +12,46 @@
     menu.dataset.x = x;
     menu.dataset.y = y;
   }
+
+  export function showGroupContextMenu(e) {
+    e.preventDefault(); // Forhindre standard kontekstmeny
+    const menu = document.getElementById("groupContextMenu");
+    menu.style.left = e.pageX + "px";
+    menu.style.top = e.pageY + "px";
+    menu.style.display = "block";
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    menu.dataset.x = x;
+    menu.dataset.y = y;
+  }
+
+
+  document.querySelectorAll("#groupContextMenu li").forEach(item => {
+    item.addEventListener("click", function (e) {
+      console.log("clicked on group context menu item")
+      e.stopPropagation();
+      const type = this.getAttribute("data-color");
+      const value = this.getAttribute("data-value");
+      const menu = document.getElementById("groupContextMenu");
+      const x = parseFloat(menu.dataset.x);
+      const y = parseFloat(menu.dataset.y);
+  
+      //sett fargen på den valgte other til den valgte fargen
+      
+        grid.others.forEach(other => {
+          if (other.selected) {
+            other.color = value;
+            console.log("setter farge på other til: ", value)
+          }
+        });
+      
+
+
+      menu.style.display = "none";
+    });
+  }
+);
   
   document.querySelectorAll("#contextMenu li").forEach(item => {
     item.addEventListener("click", function (e) {
@@ -60,6 +100,8 @@
     subMenu.dataset.x = x;
     subMenu.dataset.y = y;
   }
+
+  
   
   document.querySelectorAll("#roundtableSubMenu li").forEach(item => {
     item.addEventListener("click", function () {
@@ -77,6 +119,7 @@
     const menu1 = document.getElementById("contextMenu");
     const menu2 = document.getElementById("groupContextMenu");
     const subMenu = document.getElementById("roundtableSubMenu");
+    const colorMenu = document.getElementById("groupContextMenu");
     if (menu1.style.display === "block" && !menu1.contains(e.target)) {
       menu1.style.display = "none";
     }
@@ -85,6 +128,9 @@
     }
     if (subMenu.style.display === "block" && !subMenu.contains(e.target)) {
       subMenu.style.display = "none";
+    }
+    if(subMenu.style.display === "block" && !colorMenu.contains(e.target)){
+      colorMenu.style.display = "none";
     }
   });
   
@@ -112,4 +158,6 @@
     unsavedChanges = true;
     grid.draw();
   }
+
+
   
