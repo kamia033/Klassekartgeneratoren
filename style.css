@@ -4,7 +4,7 @@
 :root {
   --accent: #7359f7;
   --accent_hover: #5540de;
-  --font:white;
+  --font: white;
   --font_light: #777;
   --background: #ffeba7;
   --element_background: #fff;
@@ -20,6 +20,7 @@ body {
   background-color: #f7f9fc;
   color: #333;
 }
+
 .container {
   max-width: 1200px;
   margin: 20px auto;
@@ -28,6 +29,7 @@ body {
   gap: 20px;
   overflow-y: hidden;
 }
+
 /* Venstre panel */
 .left-panel {
   position: relative;
@@ -37,71 +39,33 @@ body {
   gap: 10px;
   width: 80%;
 }
+
 #studentList {
   height: 160px;
   min-height: 160px;
   max-height: 300px;
   overflow-y: auto;
 }
+
 #canvas-container {
   position: relative;
-  display: inline-block;
   width: 73vw;
-  height: 82vh;
-  overflow: auto;
-  max-width: 100%;
+  height: 88vh;
   border: 2px solid #424242;
   background-color: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Skjuler scrollbaren på containeren selv */
 }
+.scroll-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
 canvas {
   display: block;
 }
-.canvas-controls {
-  display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-  gap: 10px;
-  justify-content: space-between;
 
-          /* Gjør at elementene kan bryte linje ved behov */
-align-items: center;
-justify-content: space-between;
-padding-top: 0.5rem;
-box-sizing: border-box;
-margin: 0;
-margin-bottom: 5px;
-}
-#cellSizeSlider {
-  width: 80%;
-
-}
-.slider-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 60%;
-}
-.slider-container, .export-buttons {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  padding: 10px;
-  height: 50px;
-  border-radius: 4px;
-  margin-top: 0px;
-}
-.export-buttons{
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 10px;
-  justify-content: space-between;
-  width: 40%;
-}
-.slider-container label {
-  font-size: 14px;
-}
 /* Høyre panel */
 .controls {
   flex: 1;
@@ -121,13 +85,15 @@ margin-bottom: 5px;
   margin-top: 5px;
   width: 100%;
 }
+
 .save-section {
   background-color: var(--element_background);
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 textarea {
   height: 150px;
   padding: 10px;
@@ -135,22 +101,27 @@ textarea {
   border-radius: 4px;
   resize: vertical;
 }
-.left-panel button{
+
+.left-panel button {
   padding: 10px 15px;
-  background-color: var(--accent);
+  background-color: rgba(0, 0, 0, 0.2);
   color: var(--font);
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-top: 20px;
+  padding-bottom: 25px;
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
 }
+
 .left-panel button:hover {
-  background-color: var(--accent_hover);
+  background-color: rgba(0, 0, 0, 0.4);
+  
 }
+
 .controls button {
   padding: 10px 15px;
   background-color: var(--accent);
@@ -163,15 +134,17 @@ textarea {
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
-  
+
   transition: all 200ms linear;
   border-radius: 4px;
   width: 100%;
   letter-spacing: 1px;
 }
+
 .controls button:hover {
   background-color: var(--accent_hover);
 }
+
 input[type="text"] {
   padding: 8px;
   border: 1px solid #ccc;
@@ -179,9 +152,11 @@ input[type="text"] {
   width: 100%;
   box-sizing: border-box;
 }
+
 .dropdown {
   margin: 10px 0;
 }
+
 /* Fargeknapper (sirkler) – ligner Miro */
 
 
@@ -195,9 +170,11 @@ input[type="text"] {
   cursor: pointer;
   transition: transform 0.2s ease;
 }
+
 .color-button:hover {
   transform: scale(1.1);
 }
+
 /* Gruppe fargevisning i kontekstmenyen */
 .group-color {
   display: inline-block;
@@ -206,33 +183,41 @@ input[type="text"] {
   border-radius: 50%;
   margin: 2px;
 }
+
 /* Standard kontekstmeny */
-#contextMenu, #groupContextMenu {
+#contextMenu,
+#groupContextMenu {
   display: none;
   position: absolute;
   z-index: 1000;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
-#contextMenu ul, #groupContextMenu ul {
+
+#contextMenu ul,
+#groupContextMenu ul {
   list-style: none;
   margin: 0;
   padding: 5px 0;
 }
+
 #contextMenu li {
   padding: 8px 12px;
   cursor: pointer;
 }
+
 #contextMenu li:hover {
   background-color: #f0f0f0;
 }
+
 #groupContextMenu ul {
   display: flex;
   gap: 5px;
   justify-content: center;
 }
+
 #groupContextMenu li {
   cursor: pointer;
 }
@@ -251,7 +236,7 @@ ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 #roundtableSubMenu li {
@@ -276,11 +261,12 @@ ul {
   color: white;
   padding: 10px 15px;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   font-size: 14px;
   z-index: 10000;
   display: none;
 }
+
 /* Varsel for ufordelte elever */
 #assignmentWarning {
   display: none;
@@ -311,7 +297,7 @@ footer {
   border-radius: 4px;
   width: 100%;
   letter-spacing: 1px;
-  
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -320,7 +306,7 @@ footer {
   background-color: var(--accent);
   cursor: pointer;
   color: white;
-  box-shadow: 0 12px 35px 0 rgba(255,235,167,.15);
+  box-shadow: 0 12px 35px 0 rgba(255, 235, 167, .15);
   position: relative;
 }
 
@@ -348,14 +334,17 @@ footer {
   display: none;
   position: absolute;
   width: 100%;
-  top: 55px; /* Litt avstand fra den valgte dropdownen */
+  top: 55px;
+  /* Litt avstand fra den valgte dropdownen */
   background-color: white;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   z-index: 10;
   padding: 5px 0;
-  max-height: 200px; /* Maksimal høyde for listen */
-  overflow-y: auto; /* Rull når det er for mange elementer */
+  max-height: 200px;
+  /* Maksimal høyde for listen */
+  overflow-y: auto;
+  /* Rull når det er for mange elementer */
   list-style: none;
   margin: 0;
 }
@@ -380,17 +369,20 @@ footer {
 .dropdown.active .dropdown-options {
   display: block;
 }
+
 .dropdown-selected::after {
-  content: '▼'; /* Unicode for nedoverpil */
+  content: '▼';
+  /* Unicode for nedoverpil */
   font-size: 18px;
   color: white;
   position: absolute;
-  right: 15px; /* Plasser pilen på høyre side */
+  right: 15px;
+  /* Plasser pilen på høyre side */
   top: 50%;
   transform: translateY(-50%);
 }
 
-footer{
+footer {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -424,7 +416,7 @@ footer{
 #fact-container p {
   font-size: 12px;
   text-align: center;
- 
+
 }
 
 
@@ -447,40 +439,46 @@ footer{
 .toggle-container.active .toggle-circle {
   left: 75px;
 }
-#mode-box{
+
+#mode-box {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   padding: 0;
-  background-color:var(--font_light);
+  background-color: var(--font_light);
   border-radius: 10px;
 }
-#mode-slider{
+
+#mode-slider {
   display: none;
 }
-#active-mode{
+
+#active-mode {
   background-color: var(--accent);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   scale: 1.1;
   transition: left 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
-.mode-button{
-  width:50%;
+
+.mode-button {
+  width: 50%;
   padding: 14px;
   border-radius: 10px;
-  margin:0;
+  margin: 0;
   font-weight: bold;
   font-size: 16px;
   transition: transform 0.3s ease-in-out;
 }
 
 
-#fullscreen-button{
-  position:absolute;
-  top: 0; /* Juster denne verdien etter ønsket avstand fra toppen */
-  right: -2px; /* Juster denne verdien etter ønsket avstand fra høyre */
+#fullscreen-button {
+  position: absolute;
+  top: 0;
+  /* Juster denne verdien etter ønsket avstand fra toppen */
+  right: 0px;
+  /* Juster denne verdien etter ønsket avstand fra høyre */
   width: 100px;
   height: 30px;
   padding-top: 10px;
@@ -500,6 +498,59 @@ footer{
   overflow-x: visible;
 }
 
-#fullscreen-button:hover{
+#fullscreen-button:hover {
   background-color: rgba(0, 0, 0, 0.6);
+}
+.canvas-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  z-index: 4000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-grow: 1;  /* Lar slideren ta all ledig plass */
+  gap: 10px;
+  color: white;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 10px;
+}
+
+
+#cellSizeSlider {
+  width: 100%; /* Sikrer at slideren tar hele bredden av containeren */
+}
+
+.export-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin: 0, auto;
+  justify-content: flex-end; /* Skyver knappene helt til høyre */
+}
+
+.export-buttons img {
+  width: 25px;
+  height: 25px;
+  filter: brightness(0) invert(1); /* Gjør svart til hvit */
+}
+
+.export-buttons button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 14px;
 }

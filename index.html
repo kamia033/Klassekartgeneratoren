@@ -1,41 +1,43 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>Klassekartgeneratoren</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
+
 <body>
   <div id="notification"></div>
   <div class="container">
     <!-- Venstre panel -->
     <div class="left-panel">
-      <div id="fullscreen-button"> [ ] Fullskjerm</div>
+      
       <div id="canvas-container">
-        
-        <canvas id="gridCanvas">
-          
-        </canvas>
-
-        
-      </div>
-      <div class="canvas-controls">
-        <div class="slider-container">
-          <label for="cellSizeSlider">Zoom: <span id="cellSizeValue">40</span>px</label>
-          <input type="range" id="cellSizeSlider" min="30" max="100" value="40" oninput="updateCellSize(this.value)">
+        <div id="fullscreen-button"> [ ] Fullskjerm</div>
+        <div class="scroll-wrapper">
+          <canvas id="gridCanvas"></canvas>
         </div>
-        <div class="export-buttons">
-          <button onclick="exportImage()">Eksporter bilde</button>
-          <button onclick="copyImage()">Kopier til utklippstavlen</button>
+        <div id="canvas-controls" class="canvas-controls">
+          <div class="slider-container">
+            <label for="cellSizeSlider">Zoom: </label>
+            <input type="range" id="cellSizeSlider" min="30" max="100" value="40" oninput="updateCellSize(this.value)">
+          </div>
+          <div class="export-buttons">
+            <button onclick="exportImage()"><img src="icons/regular-download.svg">Eksporter bilde</button>
+            <button onclick="copyImage()"> <img src="icons/regular-copy.svg"> til utklippstavlen</button>
+          </div>
         </div>
       </div>
+      
+      
     </div>
     <!-- Høyre panel -->
     <div class="controls">
       <div id="mode-slider" class="save-section">
-        
-        <button id="mode-box"onclick="changeMode()">
+
+        <button id="mode-box" onclick="changeMode()">
           <div id="active-mode" class="mode-button">Vindu</div>
           <div id="inactive-mode" class="mode-button">Fullskjerm</div>
         </button>
@@ -47,9 +49,9 @@
             <!-- Lagrede klasser fylles inn dynamisk -->
           </ul>
         </div>
-        
-        
-        
+
+
+
         <button onclick="createNewClass()">⭐ Opprett ny klasse</button>
         <button onclick="saveClass()">💾 Lagre klasse</button>
         <button onclick="deleteClass()">❌ Slett klasse</button>
@@ -57,14 +59,15 @@
       <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)"></textarea>
       <button onclick="assignStudents()">Plasser elever tilfeldig</button>
       <div id="assignmentWarning">⚠️ Ikke alle elever har blitt tildelt plass!</div>
-      <button onclick="sparkleItUp()" >✨ Sparkle it up ✨</button>
+      <button onclick="sparkleItUp()">✨ Sparkle it up ✨</button>
       <div id="fact-container" class="save-section">
-        <button id ="prev"class="fact-btn" onclick="prevFunfact()">◀</button>
+        <button id="prev" class="fact-btn" onclick="prevFunfact()">◀</button>
         <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
         <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
-    </div>
+      </div>
       <!-- Fargevelger med sirkler -->
-      <div class="color-picker" style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+      <div class="color-picker"
+        style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
         <p>Velg farge på pultene:</p>
         <button class="color-button" onclick="setElementColor('#FF0000')" style="background-color:#FF0000;"></button>
         <button class="color-button" onclick="setElementColor('#FF8700')" style="background-color:#FF8700;"></button>
@@ -78,12 +81,12 @@
         <button class="color-button" onclick="setElementColor('#BE0AFF')" style="background-color:#BE0AFF;"></button>
       </div>
       <!-- Sparkle it up -->
-      
+
     </div>
   </div>
-  
+
   <!-- Fullskjermknapp -->
-  
+
 
   <!-- Standard kontekstmeny -->
   <div id="contextMenu">
@@ -91,12 +94,12 @@
       <li data-type="desk">Elevpult</li>
       <li data-type="merkelapp">Merkelapp</li>
       <li data-type="roundtable">Rundbord</li>
-      
+
     </ul>
   </div>
-  
+
   <!-- Ny undermeny for rundbord – vises når brukeren velger rundbord -->
-  <div id="roundtableSubMenu" >
+  <div id="roundtableSubMenu">
     <ul>
 
       <li data-seats="0">ingen</li>
@@ -106,33 +109,55 @@
       <li data-seats="5">5 seter</li>
     </ul>
   </div>
-  
+
   <!-- Kontekstmeny for pultegrupper -->
   <div id="groupContextMenu">
     <ul>
-      <li data-color="#FF0000"><div class="group-color" style="background-color:#FF0000;"></div></li>
-      <li data-color="#FF8700"><div class="group-color" style="background-color:#FF8700;"></div></li>
-      <li data-color="#FFD300"><div class="group-color" style="background-color:#FFD300;"></div></li>
-      <li data-color="#DEFF0A"><div class="group-color" style="background-color:#DEFF0A;"></div></li>
-      <li data-color="#A1FF0A"><div class="group-color" style="background-color:#A1FF0A;"></div></li>
-      <li data-color="#0AFF99"><div class="group-color" style="background-color:#0AFF99;"></div></li>
-      <li data-color="#0AEFFF"><div class="group-color" style="background-color:#0AEFFF;"></div></li>
-      <li data-color="#147DF5"><div class="group-color" style="background-color:#147DF5;"></div></li>
-      <li data-color="#580AFF"><div class="group-color" style="background-color:#580AFF;"></div></li>
-      <li data-color="#BE0AFF"><div class="group-color" style="background-color:#BE0AFF;"></div></li>
+      <li data-color="#FF0000">
+        <div class="group-color" style="background-color:#FF0000;"></div>
+      </li>
+      <li data-color="#FF8700">
+        <div class="group-color" style="background-color:#FF8700;"></div>
+      </li>
+      <li data-color="#FFD300">
+        <div class="group-color" style="background-color:#FFD300;"></div>
+      </li>
+      <li data-color="#DEFF0A">
+        <div class="group-color" style="background-color:#DEFF0A;"></div>
+      </li>
+      <li data-color="#A1FF0A">
+        <div class="group-color" style="background-color:#A1FF0A;"></div>
+      </li>
+      <li data-color="#0AFF99">
+        <div class="group-color" style="background-color:#0AFF99;"></div>
+      </li>
+      <li data-color="#0AEFFF">
+        <div class="group-color" style="background-color:#0AEFFF;"></div>
+      </li>
+      <li data-color="#147DF5">
+        <div class="group-color" style="background-color:#147DF5;"></div>
+      </li>
+      <li data-color="#580AFF">
+        <div class="group-color" style="background-color:#580AFF;"></div>
+      </li>
+      <li data-color="#BE0AFF">
+        <div class="group-color" style="background-color:#BE0AFF;"></div>
+      </li>
     </ul>
   </div>
 
-  
-  <canvas id ="offScreenCanvas" style="display:none;"></canvas>
-  
+
+  <canvas id="offScreenCanvas" style="display:none;"></canvas>
+
   <!-- Footer -->
   <footer>
-    <a href="/info.html">Les om fremtidige oppdateringer og vanlig stilte spørsmål her. Du kan også sende feedback på Klassekartgeneratoren 💯</a>
-    </footer>
-  
+    <a href="/info.html">Les om fremtidige oppdateringer og vanlig stilte spørsmål her. Du kan også sende feedback på
+      Klassekartgeneratoren 💯</a>
+  </footer>
+
   <script type="module" src="main.js"></script>
   <script src="funfacts.js"></script>
   <script type="module" src="utils.js"></script>
 </body>
+
 </html>

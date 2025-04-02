@@ -140,7 +140,7 @@ export function assignStudents() {
   export function updateCellSize(value) {
     let oldSize = grid.cellSize;
     grid.cellSize = parseInt(value);
-    document.getElementById("cellSizeValue").innerText = value;
+    document.getElementById("cellSizeSlider").value = value;
     let factor = grid.cellSize / oldSize;
     grid.others.forEach(other => {
       other.x *= factor;
@@ -431,7 +431,33 @@ document.addEventListener("fullscreenchange", function() {
       }
     }
     
+//legge til eventlistener for om musepekeren er over et cavnvas container
+let canvasCont = document.getElementById("canvas-container");
 
+canvasCont.addEventListener("mouseleave", function(event) {
+    //sett css til hidden for canvas-controls og fullscreen-button
+    let controls = document.getElementById("canvas-controls");
+    let fullscreenBtn = document.getElementById("fullscreen-button");
+    controls.style.visibility = "hidden";
+    fullscreenBtn.style.visibility = "hidden";
+    
+  }
+);
+
+
+canvasCont.addEventListener("mouseenter", function(event) {
+    //sett css til visible for canvas-controls og fullscreen-button
+    console.log(currentClass);
+    let controls = document.getElementById("canvas-controls");
+    let fullscreenBtn = document.getElementById("fullscreen-button");
+    //check if currentClass is empty string or null
+    if(grid.currentClass !== ""){
+      controls.style.visibility = "visible";
+      fullscreenBtn.style.visibility = "visible";
+    }
+    
+    
+  });
     
 
 

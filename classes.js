@@ -810,7 +810,7 @@ export default class ClassroomGrid {
     if (state.cellSize !== undefined) {
       this.cellSize = state.cellSize;
       document.getElementById("cellSizeSlider").value = state.cellSize;
-      document.getElementById("cellSizeValue").innerText = state.cellSize;
+      //document.getElementById("cellSizeValue").innerText = state.cellSize;
       this.updateCanvasSize();
     }
     // Gjenopprett objekter med riktige prototyper
@@ -823,6 +823,7 @@ export default class ClassroomGrid {
     }
     this.unsavedChanges = false;
     this.draw();
+  
   }
 
   drawFullscreenBtn() {
