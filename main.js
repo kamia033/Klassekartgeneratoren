@@ -9,10 +9,13 @@ let unsavedChanges = false;
 let currentClass = null;
 let isExporting = false;
 
-utils.updateClassDropdown();
 
+
+utils.updateClassDropdown();
+grid.zones[0]= new classes.Zone(300, 300, 200, 300);
 grid.draw();
 grid.drawFullscreenBtn();
+
 
 // Legg til event listener for fullscreen-knappen
 const fullscreenBtn = document.getElementById("fullscreen-button");

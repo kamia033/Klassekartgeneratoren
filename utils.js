@@ -459,6 +459,10 @@ canvasCont.addEventListener("mouseenter", function(event) {
     
   });
     
+  export function getMousePos(e) {
+    const rect = grid.canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
 
 
 window.exportImage = exportImage;

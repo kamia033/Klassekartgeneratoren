@@ -3,6 +3,8 @@ import * as utils from './utils.js';
 import * as contextMenu from './contextMenu.js';
 
 
+
+
 export class Desk {
   constructor(gridX, gridY) {
     this.type = "desk";
@@ -66,6 +68,51 @@ export class Merkelapp {
 }
 
 
+export class Zone{
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.assignedStudents = [];
+    this.dragging = false;
+    this.dragOffsetX = 0;
+    this.dragOffsetY = 0;
+    this.resizing = false;
+    this.selected = false;
+
+    
+  }     
+  assignStudent(student) {
+    this.assignedStudents.push(student);
+  } 
+
+  isCursorInZone(mouseX, mouseY) {
+    return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
+  }
+  draw(ctx) {
+    ctx.fillStyle = "rgba(255, 255, 0, 0.5)"; // Halvtransparent gul
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    const handleSize = 10;
+    //get mouse pos
+    const mousePos = utils.getMousePos();
+    //isPointInRect(this.mousePos.x, this.mousePos.y, other.x, other.y, other.width, other.height
+    if(isPointInRect(this.x + this.width - handleSize, this.y + this.height - handleSize, handleSize, handleSize)){
+          ctx.save();
+
+          ctx.strokeStyle = 'blue';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(this.x, this.y, this.width, this.height);
+          ctx.fillStyle = 'blue';
+          ctx.fillRect(this.x + this.width - handleSize, this.y + this.height - handleSize, handleSize, handleSize);
+  }
+  }
+}
+
+
 export default class ClassroomGrid {
   constructor(canvas) {
     this.canvas = canvas;
@@ -94,6 +141,7 @@ export default class ClassroomGrid {
     this.mousePos = { x: 0, y: 0 };
     this.emojis = ['🍎', '🚀', '🎸', '🐱', '🌟', '🎨', '⚽', '🎭', '🐉', '🎵'];
     this.groupEmojis = [];
+    this.zones = [];
 
     this.currentClass = "";
     this.unsavedChanges = false;
@@ -493,6 +541,11 @@ export default class ClassroomGrid {
         }
       });
     }
+
+    //tegn zones
+    this.zones.forEach(zone => {
+      zone.draw(this.ctx);
+    });
   }
 
   isPointInRect(px, py, rx, ry, rw, rh) {
@@ -615,7 +668,42 @@ export default class ClassroomGrid {
       this.draw();
       return;
     }
-    //Tavle
+    //zone
+    for (let i = this.zones.length - 1; i >= 0; i--) {
+      let zone = this.zones[i];
+      if (zone.isCursorInZone(pos.x, pos.y)) {
+        // Sjekk om museklikket er på sletteikonet
+        if (pos.x >= zone.x + zone.width - this.deleteIconSize && pos.x <= zone.x + zone.width &&
+          pos.y >= zone.y && pos.y <= zone.y + this.deleteIconSize) {
+          this.zones.splice(i, 1);
+          this.unsavedChanges = true;
+          this.draw();
+          return;
+        }
+
+
+        const handleSize = 10;
+        if (pos.x >= zone.x + zone.width - handleSize && pos.y >= zone.y + zone.height - handleSize) {
+          zone.resizing = true;
+          zone.resizeStartWidth = zone.width;
+          zone.resizeStartHeight = zone.height;
+          zone.resizeStartX = pos.x;
+          zone.resizeStartY = pos.y;
+        } else {
+          zone.dragging = true;
+        zone.dragOffsetX = pos.x - zone.x;
+        zone.dragOffsetY = pos.y - zone.y;
+        }
+
+
+        // Start dragging av sonen
+        
+        this.activeZone = zone;
+        this.unsavedChanges = true;
+        this.draw();
+        return;
+      }
+    }
 
 
     // Opprett ny pult
@@ -664,6 +752,14 @@ export default class ClassroomGrid {
       this.draw();
       return;
     }
+
+    //zones
+    if(this.activeZone && this.activeZone.dragging) {
+      let newX = pos.x - this.activeZone.dragOffsetX;
+      let newY = pos.y - this.activeZone.dragOffsetY;
+      this.activeZone.x = newX;
+      this.activeZone.y = newY;
+    }
     this.draw();
   }
 
@@ -680,6 +776,11 @@ export default class ClassroomGrid {
     if (this.activeRoundtable) {
       this.activeRoundtable.dragging = false;
       this.activeRoundtable = null;
+    }
+
+    if(this.activeZone){
+      this.activeZone.dragging = false;
+      this.activeZone = null;
     }
     this.draw();
   }
@@ -865,4 +966,8 @@ export default class ClassroomGrid {
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(btnX, btnY + btnSize, btnSize, 20);
   }
+}
+
+function isPointInRect(px, py, rx, ry, rw, rh) {
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
 }
