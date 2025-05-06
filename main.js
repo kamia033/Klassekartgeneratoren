@@ -5,6 +5,7 @@ import * as contextMenu from './contextMenu.js';
 
 const canvas = document.getElementById("gridCanvas");
 const grid = new ClassroomGrid(canvas);
+window.grid = grid;
 let unsavedChanges = false;
 let currentClass = null;
 let isExporting = false;
@@ -24,7 +25,7 @@ fullscreenBtn.addEventListener("click", () => {
   utils.toggleFullscreen();
 });
 
-window.grid = grid;
+
 window.isExporting = isExporting;
 window.canvas = canvas;
 

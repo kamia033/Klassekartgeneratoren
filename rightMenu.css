@@ -1,0 +1,38 @@
+#studentList {
+    min-height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: sans-serif;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  /* Pill‐styling */
+  .student-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 12px;
+    background-color: #e0e0e0;
+  }
+  .student-pill .name {
+    margin-right: 4px;
+  }
+  .student-pill .icon {
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  /* Sørg for at løpende tekst splitter seg rundt pillene */
+  #studentList span, 
+  #studentList i {
+    line-height: 1.4;
+  }
+  /* Usynlig textarea for lagring (valgfritt) */
+  #hiddenTextarea {
+    display: none;
+  }

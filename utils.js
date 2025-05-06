@@ -152,7 +152,7 @@ export function assignStudents() {
     unsavedChanges = true;
     grid.draw();
   }
-  
+
   export function getElementsBoundingBox(gridObject) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     gridObject.desks.forEach(desk => {

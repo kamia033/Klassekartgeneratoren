@@ -41,14 +41,15 @@
       
         grid.others.forEach(other => {
           if (other.selected) {
-            other.color = value;
-            console.log("setter farge på other til: ", value)
+            other.color = type;
+            other.selected = false; // Fjern markering etter fargevalg
           }
         });
       
 
 
       menu.style.display = "none";
+      grid.draw();
     });
   }
 );

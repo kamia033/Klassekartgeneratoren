@@ -97,6 +97,7 @@ canvas {
 }
 
 textarea {
+  
   height: 150px;
   padding: 10px;
   border: 1px solid #ccc;
@@ -184,6 +185,11 @@ input[type="text"] {
   height: 20px;
   border-radius: 50%;
   margin: 2px;
+}
+
+.group-color:hover {
+  transform: scale(1.4);
+  transition: transform 0.2s ease;
 }
 
 /* Standard kontekstmeny */
