@@ -179,7 +179,7 @@ export default class ClassroomGrid {
     this.emojis = ['🍎', '🚀', '🎸', '🐱', '🌟', '🎨', '⚽', '🎭', '🐉', '🎵'];
     this.groupEmojis = [];
     this.zones = [];
-
+    this.zonesActive = false;
     this.currentClass = "";
     this.unsavedChanges = false;
     this.showAdvanced = false;

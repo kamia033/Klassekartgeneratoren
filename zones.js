@@ -1,4 +1,8 @@
+import {Zone} from "./classes.js";
+
 let zoneCounter = 1; // Starter på 1 fordi zone1 allerede finnes
+document.addEventListener("addZoneButton",addZone())
+
 document.addEventListener("addStudentButton",addStudentToZone(1))
 
 
@@ -57,7 +61,7 @@ function addStudentToZone(zoneId) {
     console.log(`Valgt elev i sone ${zoneId}: ${selectedName}`);
   }
 
-  function deleteZone(zoneId) {
+  export function deleteZone(zoneId) {
     const zone = document.getElementById(`zone${zoneId}`);
     if (zone) {
       zone.remove();
@@ -66,15 +70,23 @@ function addStudentToZone(zoneId) {
 
   
 
-function addZone() {
+export function addZone() {
   zoneCounter++;
 
-  const zoneControls = document.getElementById("zoneControls");
 
+  let zoneName = `zone${zoneCounter}`;
+  let zone = new Zone(300, 300, 200, 300);
+  console.log(zone);
+  zone.name = zoneName;
+  grid.zones.push(zone);
+    grid.draw();
+  const zoneControls = document.getElementById("zoneControls");
+//4., 6. 13. juni
   // Lag ny zone-element
   const zoneElement = document.createElement("div");
   zoneElement.className = "zoneListEl";
-  zoneElement.id = `zone${zoneCounter}`;
+  
+  zoneElement.id = zoneName;
 
   zoneElement.innerHTML = `
     <div class="zoneHeader">
@@ -88,3 +100,22 @@ function addZone() {
 
   zoneControls.appendChild(zoneElement);
 }
+
+function toggleZones() {
+  const zoneControls = document.getElementById("zoneControls");
+  if (zoneControls.style.display === "none") {
+    zoneControls.style.display = "block";
+    grid.zonesActive = true;
+  } else {
+    zoneControls.style.display = "none";
+    grid.zonesActive = false;
+  }
+}
+
+
+
+window.addZone = addZone;
+window.addStudentToZone = addStudentToZone;
+window.deleteZone = deleteZone;
+window.updateStudentName = updateStudentName;
+window.toggleZones = toggleZones;
