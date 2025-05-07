@@ -1,4 +1,4 @@
-
+let zoneCounter = 1; // Starter på 1 fordi zone1 allerede finnes
 document.addEventListener("addStudentButton",addStudentToZone(1))
 
 
@@ -50,3 +50,41 @@ function addStudentToZone(zoneId) {
     const addButton = zoneContent.querySelector('.addStudentButton');
     zoneContent.insertBefore(studentListEl, addButton);
   }
+
+  function updateStudentName(zoneId) {
+    const select = document.querySelector(`#zone${zoneId} .studentSelect:last-of-type`);
+    const selectedName = select.value;
+    console.log(`Valgt elev i sone ${zoneId}: ${selectedName}`);
+  }
+
+  function deleteZone(zoneId) {
+    const zone = document.getElementById(`zone${zoneId}`);
+    if (zone) {
+      zone.remove();
+    }
+  }
+
+  
+
+function addZone() {
+  zoneCounter++;
+
+  const zoneControls = document.getElementById("zoneControls");
+
+  // Lag ny zone-element
+  const zoneElement = document.createElement("div");
+  zoneElement.className = "zoneListEl";
+  zoneElement.id = `zone${zoneCounter}`;
+
+  zoneElement.innerHTML = `
+    <div class="zoneHeader">
+      <div class="zoneLabel">Sone ${zoneCounter}</div>
+      <div class="removeButton" onclick="deleteZone(${zoneCounter})">X</div> 
+    </div>
+    <div class="zoneContent">
+      <div class="addStudentButton" onclick="addStudentToZone(${zoneCounter})">Legg til elev</div>
+    </div>
+  `;
+
+  zoneControls.appendChild(zoneElement);
+}
