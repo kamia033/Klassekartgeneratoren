@@ -6,6 +6,7 @@
   <title>Klassekartgeneratoren</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="rightMenu.css">
 </head>
 
 <body>
@@ -65,22 +66,27 @@
         <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
         <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
       </div>
-      <!-- Fargevelger med sirkler -->
-      <div class="color-picker"
-        style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
-        
-        <button class="color-button" data-value="#FF0000" onclick="setElementColor('#FF0000')" style="background-color:#FF0000;"></button>
-        <button class="color-button" onclick="setElementColor('#FF8700')" style="background-color:#FF8700;"></button>
-        <button class="color-button" onclick="setElementColor('#FFD300')" style="background-color:#FFD300;"></button>
-        <button class="color-button" onclick="setElementColor('#DEFF0A')" style="background-color:#DEFF0A;"></button>
-        <button class="color-button" onclick="setElementColor('#A1FF0A')" style="background-color:#A1FF0A;"></button>
-        <button class="color-button" onclick="setElementColor('#0AFF99')" style="background-color:#0AFF99;"></button>
-        <button class="color-button" onclick="setElementColor('#0AEFFF')" style="background-color:#0AEFFF;"></button>
-        <button class="color-button" onclick="setElementColor('#147DF5')" style="background-color:#147DF5;"></button>
-        <button class="color-button" onclick="setElementColor('#580AFF')" style="background-color:#580AFF;"></button>
-        <button class="color-button" onclick="setElementColor('#BE0AFF')" style="background-color:#BE0AFF;"></button>
+     <div id="zoneControls">
+      <input type="checkbox" id="showZones" onclick="toggleZones()" checked>
+      <label for="showZones">Vis soner</label>
+
+      <div class="zoneElement">
+        <div class="zoneListEl" id="zone1">
+          <div class="zoneHeader">
+            <div class="zoneLabel">Sone 1</div>
+            <div class="removeButton" onclick="deleteZone(1)">X</div> 
+          </div>
+          <div class="zoneContent">
+            <!-- Ikke ha en fast elev her – alle legges til med JS -->
+            <div class="addStudentButton" onclick="addStudentToZone(1)">Legg til elev</div>
+          </div>
+        </div>
       </div>
-      <!-- Sparkle it up -->
+      
+
+     </div>
+     <button id="addZoneButton" onclick="addZone()">+ Legg til ny sone</button>
+      
 
     </div>
   </div>
@@ -158,6 +164,7 @@
   <script type="module" src="main.js"></script>
   <script src="funfacts.js"></script>
   <script type="module" src="utils.js"></script>
+  <script src="zones.js"></script>
 </body>
 
 </html>

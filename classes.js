@@ -79,6 +79,7 @@ export class Merkelapp {
 
 export class Zone{
   constructor(x, y, width, height) {
+    this.name = "Sone 1";
     this.x = x;
     this.y = y;
     this.width = width;
@@ -126,6 +127,11 @@ export class Zone{
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = 2;
     ctx.strokeRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = "rgba(102, 102, 0, 0.9)";
+    //bold font
+    ctx.font = "bold 30px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText(this.name, this.x + 5, this.y + 20);
     const handleSize = 10;
     //get mouse pos
     

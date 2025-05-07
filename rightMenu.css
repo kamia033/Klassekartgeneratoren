@@ -1,38 +1,108 @@
-#studentList {
-    min-height: 100px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 6px;
-    font-family: sans-serif;
-    font-size: 1rem;
-    white-space: pre-wrap;
-    overflow-y: auto;
+/*<div class="zoneElement">
+<div class="zoneListEl" id="zone1">
+  
+  <div class="zoneHeader">
+    <div class="zoneLabel">Sone 1</div>
+    <div class=deleteZoneButton onclick="deleteZone(1)">X</div> 
+  </div>
+  <div class="zoneContent">
+    <div class="zoneStudentListEl">
+      //dropdown for å velge elev
+      <select id="studentSelect1" class="studentSelect" onchange="updateStudentName(1)">
+        <option value="">Velg elev</option>
+        <!-- Dynamisk fylt med elever -->
+      </select>
+    </div>
+    <div class="addStudentButton" onclick="addStudentToZone(1)">Legg til elev</div>
+  </div>
+
+</div>
+*/
+
+.zoneListEl{
+    background-color: white;
+    padding: 5px;
+    border-radius: 3px;
+    border-color: lightgray;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.zoneHeader{
     display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  /* Pill‐styling */
-  .student-pill {
-    display: inline-flex;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    padding: 2px 6px;
-    border-radius: 12px;
-    background-color: #e0e0e0;
-  }
-  .student-pill .name {
-    margin-right: 4px;
-  }
-  .student-pill .icon {
+    
+}
+.zoneHeader div{
+    margin: 0;
+    padding: 5px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.zoneHeader .removeButton{
+   width: 20px;
+   height: 20px;
+   font-size: 20
+}
+
+.zoneStudentListEl{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-right: 15px;
+    margin-bottom: 5px;
+}
+
+.studentSelect{
+    width: 70%;
+    padding: 5px;
+    border-radius: 3px;
+    border-color: lightgray;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.addStudentButton{
+    background-color: purple; 
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 10px;
     cursor: pointer;
-    font-size: 0.9em;
-  }
-  /* Sørg for at løpende tekst splitter seg rundt pillene */
-  #studentList span, 
-  #studentList i {
-    line-height: 1.4;
-  }
-  /* Usynlig textarea for lagring (valgfritt) */
-  #hiddenTextarea {
-    display: none;
-  }
+    border-radius: 3px;
+}
+.removeButton{
+    background-color: gainsboro; 
+    border: none;
+    color: black;
+    width:20px;
+    height: 20px;
+    padding: 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.removeButton:hover{
+    background-color: darkgray;
+    color: white;
+}
+
+.addStudentButton:hover{
+    background-color: darkviolet;
+    color: white;
+}
+
+
