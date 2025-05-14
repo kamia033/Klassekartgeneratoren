@@ -1,9 +1,9 @@
 import {Zone} from "./classes.js";
 
-let zoneCounter = 1; // Starter på 1 fordi zone1 allerede finnes
-document.addEventListener("addZoneButton",addZone())
+let zoneCounter = 0; // Starter på 1 fordi zone1 allerede finnes
+//document.addEventListener("addZoneButton",addZone())
 
-document.addEventListener("addStudentButton",addStudentToZone(1))
+//document.addEventListener("addStudentButton",addStudentToZone(1))
 
 
 function addStudentToZone(zoneId) {
@@ -62,10 +62,21 @@ function addStudentToZone(zoneId) {
   }
 
   export function deleteZone(zoneId) {
+    console.log(`Deleting zone with ID: ${zoneId}`);
     const zone = document.getElementById(`zone${zoneId}`);
     if (zone) {
       zone.remove();
     }
+    //delete zone from grid.zones
+    for (let i = 0; i < grid.zones.length; i++) {
+      if (grid.zones[i].id == zoneId) {
+        grid.zones.splice(i, 1);
+        console.log(grid.zones);
+        break;
+      }
+    }
+   
+    grid.draw();
   }
 
   
@@ -75,30 +86,13 @@ export function addZone() {
 
 
   let zoneName = `zone${zoneCounter}`;
-  let zone = new Zone(300, 300, 200, 300);
-  console.log(zone);
+  let zone = new Zone(0, 0, 5, 5, zoneCounter);
   zone.name = zoneName;
+ 
   grid.zones.push(zone);
-    grid.draw();
-  const zoneControls = document.getElementById("zoneControls");
-//4., 6. 13. juni
-  // Lag ny zone-element
-  const zoneElement = document.createElement("div");
-  zoneElement.className = "zoneListEl";
-  
-  zoneElement.id = zoneName;
-
-  zoneElement.innerHTML = `
-    <div class="zoneHeader">
-      <div class="zoneLabel">Sone ${zoneCounter}</div>
-      <div class="removeButton" onclick="deleteZone(${zoneCounter})">X</div> 
-    </div>
-    <div class="zoneContent">
-      <div class="addStudentButton" onclick="addStudentToZone(${zoneCounter})">Legg til elev</div>
-    </div>
-  `;
-
-  zoneControls.appendChild(zoneElement);
+  grid.draw();
+  zone.createZoneMenuItem(zoneCounter);
+  addStudentToZone(zoneCounter)
 }
 
 function toggleZones() {

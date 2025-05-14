@@ -1,6 +1,7 @@
 // classes.js
 import * as utils from './utils.js';
 import * as contextMenu from './contextMenu.js';
+import * as zones from './zones.js';
 
 
 
@@ -78,8 +79,8 @@ export class Merkelapp {
 
 
 export class Zone{
-  constructor(x, y, width, height) {
-    this.name = "Sone 1";
+  constructor(x, y, width, height,number) {
+    this.id = number;
     this.x = x;
     this.y = y;
     this.width = width;
@@ -92,6 +93,12 @@ export class Zone{
     this.selected = false;
     this.mouseX = 0;
     this.mouseY = 0;
+    this.zoneNumber=number;
+
+    this.drawX = this.x*grid.cellSize;
+    this.drawY = this.y*grid.cellSize;
+    this.drawWidth = this.width*grid.cellSize;
+    this.drawHeight = this.height*grid.cellSize;
 
     this.display = true;
     
@@ -112,21 +119,55 @@ export class Zone{
   } 
 
   isCursorInZone(mouseX, mouseY) {
-    return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
+    return mouseX >= this.x && mouseX <= this.x + this.drawWidth && mouseY >= this.y && mouseY <= this.y + this.drawHeight;
   }
 
   isCursorInHandle(mouseX, mouseY) {
     const handleSize = 10;
-    return mouseX >= this.x + this.width - handleSize && mouseY >= this.y + this.height - handleSize;
+    return mouseX >= this.x + this.drawWidth - handleSize && mouseY >= this.y + this.drawHeight - handleSize;
+  }
+
+  createZoneMenuItem(zoneNumber) {
+    const zoneControls = document.getElementById("zoneControls");
+    //4., 6. 13. juni
+      // Lag ny zone-element
+      const zoneElement = document.createElement("div");
+      zoneElement.className = "zoneListEl";
+      
+      zoneElement.id = `zone${zoneNumber}`;
+    
+      zoneElement.innerHTML = `
+        <div class="zoneHeader">
+          <div class="zoneLabel">Sone ${zoneNumber}</div>
+          <div class="removeButton" onclick="deleteZone(${zoneNumber})">X</div> 
+        </div>
+        <div class="zoneContent">
+          <div class="addStudentButton" onclick="addStudentToZone(${zoneNumber})">Legg til elev</div>
+        </div>
+      `;
+    
+      zoneControls.appendChild(zoneElement);
   }
 
   draw(ctx) {
+
+    //Når grid.cellSize endres må også denne oppdateres
+    //slik at merkelappen alltid er i riktig posisjon
+
+    //this.drawX = this.x;
+    //this.drawY = this.y;
+    //this.drawWidth = this.width*grid.cellSize;
+    //this.drawHeight = this.height*grid.cellSize;
+
     if(this.display)  {
+    
     ctx.fillStyle = "rgba(255, 255, 0, 0.5)"; // Halvtransparent gul
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    
+    ctx.fillRect(this.x, this.y, this.drawWidth, this.drawHeight);
+    //ctx.fillRect(this.x*grid.cellSize, this.y*grid.cellSize, this.width*grid.cellSize, this.height*grid.cellSize);
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = 2;
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    ctx.strokeRect(this.x, this.y, this.drawWidth, this.drawHeight);
     ctx.fillStyle = "rgba(102, 102, 0, 0.9)";
     //bold font
     ctx.font = "bold 30px Arial";
@@ -141,9 +182,9 @@ export class Zone{
 
           ctx.strokeStyle = 'blue';
           ctx.lineWidth = 2;
-          ctx.strokeRect(this.x, this.y, this.width, this.height);
+          ctx.strokeRect(this.x, this.y, this.drawWidth, this.drawHeight);
           ctx.fillStyle = 'blue';
-          ctx.fillRect(this.x + this.width - handleSize, this.y + this.height - handleSize, handleSize, handleSize);
+          ctx.fillRect(this.x + this.drawWidth - handleSize, this.y + this.drawHeight - handleSize, handleSize, handleSize);
   }
   }
 }
@@ -616,7 +657,7 @@ export default class ClassroomGrid {
   drawOthers() {
     this.others.forEach(o => {
       this.ctx.fillStyle = o.color;
-      console.log("farge: ", o.color);
+     
       this.ctx.fillRect(o.x, o.y, o.width, o.height);
       this.ctx.strokeStyle = this.borderColor;
       this.ctx.lineWidth = 1;
@@ -647,7 +688,7 @@ export default class ClassroomGrid {
   }
   drawZones() {
     this.zones.forEach(zone => {
-      console.log("zone: ", zone);
+     
       zone.draw(this.ctx);
     });
   }
@@ -1104,6 +1145,7 @@ isDeskInZone(desk) {
     for (let i = this.zones.length - 1; i >= 0; i--) {
       let zone = this.zones[i];
       if (zone.isCursorInZone(pos.x, pos.y)) {
+        console.log("Zone clicked");
         // Sjekk om museklikket er på sletteikonet
         if (pos.x >= zone.x + zone.width - this.deleteIconSize && pos.x <= zone.x + zone.width &&
           pos.y >= zone.y && pos.y <= zone.y + this.deleteIconSize) {
@@ -1131,14 +1173,15 @@ isDeskInZone(desk) {
         if (zone.isCursorInHandle(pos.x, pos.y)) {
           
           zone.resizing = true;
-          zone.resizeStartWidth = zone.width;
-          zone.resizeStartHeight = zone.height;
+          zone.resizeStartWidth = zone.drawWidth;
+          zone.resizeStartHeight = zone.drawHeight;
           zone.resizeStartX = pos.x;
           zone.resizeStartY = pos.y;
         } else {
           // Start dragging av sonen
           zone.resizing = false;
           zone.dragging = true;
+          console.log("Dragging zone");
           zone.dragOffsetX = pos.x - zone.x;
           zone.dragOffsetY = pos.y - zone.y;
           zone.selected = true;
@@ -1210,8 +1253,8 @@ isDeskInZone(desk) {
     if(this.activeZone && this.activeZone.resizing) {
       let newWidth = this.activeZone.resizeStartWidth + (pos.x - this.activeZone.resizeStartX);
       let newHeight = this.activeZone.resizeStartHeight + (pos.y - this.activeZone.resizeStartY);
-      this.activeZone.width = Math.max(newWidth, 30);
-      this.activeZone.height = Math.max(newHeight, 20);
+      this.activeZone.drawWidth = Math.max(newWidth, 30);
+      this.activeZone.drawHeight = Math.max(newHeight, 20);
     
     }
     this.draw();
@@ -1372,6 +1415,7 @@ isDeskInZone(desk) {
       others: JSON.parse(JSON.stringify(this.others)),
       roundtables: JSON.parse(JSON.stringify(this.roundtables)),
       blackboards: JSON.parse(JSON.stringify(this.blackboards)),
+      zones: JSON.parse(JSON.stringify(this.zones)),
       studentList: document.getElementById("studentList").value
     };
   }
@@ -1388,9 +1432,19 @@ isDeskInZone(desk) {
     this.others = (state.others || []).map(o => Object.assign(new Merkelapp(o.x, o.y, o.width, o.height, o.text), o));
     this.roundtables = (state.roundtables || []).map(t => Object.assign(new RoundTable(t.gridX, t.gridY, t.numSeats), t));
     this.blackboards = (state.blackboards || []).map(b => Object.assign(new Blackboard(b.x, b.y, b.width, b.height), b));
+    this.zones = (state.zones || []).map(z => Object.assign(new Zone(z.x, z.y, z.width, z.height,z.zoneNumber), z));
     if (state.studentList !== undefined) {
       document.getElementById("studentList").value = state.studentList;
     }
+
+    //gjenopprett zonehøyremeny
+    //for each zone, opprett en ny zone i høyremenyen
+    for (let i =0 ; i < this.zones.length; i++) {
+      this.zones[i].createZoneMenuItem(this.zones[i].zoneNumber);
+      this.zones[i].zoneCounter = this.zones[i].zoneNumber;
+    }
+    
+
     this.unsavedChanges = false;
     this.draw();
   

@@ -447,7 +447,6 @@ canvasCont.addEventListener("mouseleave", function(event) {
 
 canvasCont.addEventListener("mouseenter", function(event) {
     //sett css til visible for canvas-controls og fullscreen-button
-    console.log(currentClass);
     let controls = document.getElementById("canvas-controls");
     let fullscreenBtn = document.getElementById("fullscreen-button");
     //check if currentClass is empty string or null
