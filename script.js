@@ -155,43 +155,6 @@ function getDeskGroups() {
   return groups;
 }
 
-function sparkleItUp() {
-  
-    let palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
-    let emojis = grid.emojis;
-    let groups = getDeskGroups();
-  
-    palette = palette.sort(() => Math.random() - 0.5);
-    emojis = emojis.sort(() => Math.random() - 0.5);
-  
-    let groupEmojis = [];
-    groups.forEach((group, index) => {
-      if (index < palette.length) {
-        const color = palette[index];
-        const emoji = emojis[0];
-        group.forEach(group => { group.color = color; });
-        console.log("Emoji:", emoji);
-        // Bruk gridX/gridY for posisjon
-        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length + grid.cellSize/2;
-        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length + grid.cellSize/2;
-  
-        //groupEmojis.push({ text: emoji, x: centerX, y: centerY });
-      }
-    });
-  
-    grid.groupEmojis = groupEmojis; // Lagre for bruk i draw()
-    
-    // Tildel unike farger til rundbordene også (som før)
-    let availableColors = [...palette];
-    grid.roundtables.forEach(table => {
-      if (availableColors.length > 0) {
-        table.color = availableColors.pop();
-      }
-    });
-  
-    unsavedChanges = true;
-    grid.draw();
-  }
 class ClassroomGrid {
   constructor(canvas) {
     this.canvas = canvas;

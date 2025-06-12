@@ -162,20 +162,7 @@ input[type="text"] {
 /* Fargeknapper (sirkler) – ligner Miro */
 
 
-.color-button {
-  width: 30px !important;
-  height: 30px;
-  margin-top: 5px;
-  border-radius: 50% !important;
-  border: none;
-  margin-right: 5px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
 
-.color-button:hover {
-  transform: scale(1.1);
-}
 
 /* Gruppe fargevisning i kontekstmenyen */
 .group-color {
