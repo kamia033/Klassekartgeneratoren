@@ -6,6 +6,7 @@
   <title>Klassekartgeneratoren</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="style_color.css">
 </head>
 
 <body>
@@ -13,7 +14,7 @@
   <div class="container">
     <!-- Venstre panel -->
     <div class="left-panel">
-      
+
       <div id="canvas-container">
         <div id="fullscreen-button"> [ ] Fullskjerm</div>
         <div class="scroll-wrapper">
@@ -30,8 +31,8 @@
           </div>
         </div>
       </div>
-      
-      
+
+
     </div>
     <!-- Høyre panel -->
     <div class="controls">
@@ -65,23 +66,64 @@
         <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
         <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
       </div>
+
       <!-- Fargevelger med sirkler -->
       <div class="color-picker"
         style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
-        
-        <button class="color-button" data-value="#FF0000" onclick="setElementColor('#FF0000')" style="background-color:#FF0000;"></button>
-        <button class="color-button" onclick="setElementColor('#FF8700')" style="background-color:#FF8700;"></button>
-        <button class="color-button" onclick="setElementColor('#FFD300')" style="background-color:#FFD300;"></button>
-        <button class="color-button" onclick="setElementColor('#DEFF0A')" style="background-color:#DEFF0A;"></button>
-        <button class="color-button" onclick="setElementColor('#A1FF0A')" style="background-color:#A1FF0A;"></button>
-        <button class="color-button" onclick="setElementColor('#0AFF99')" style="background-color:#0AFF99;"></button>
-        <button class="color-button" onclick="setElementColor('#0AEFFF')" style="background-color:#0AEFFF;"></button>
-        <button class="color-button" onclick="setElementColor('#147DF5')" style="background-color:#147DF5;"></button>
-        <button class="color-button" onclick="setElementColor('#580AFF')" style="background-color:#580AFF;"></button>
-        <button class="color-button" onclick="setElementColor('#BE0AFF')" style="background-color:#BE0AFF;"></button>
-      </div>
-      <!-- Sparkle it up -->
+        <h3>Fargepallett</h3>
+        <div class="color-button-container" onclick="sparkleItUp('intense')">
+          <div class="color-button" style="background-color:#FF0000;"></div>
+          <div class="color-button" style="background-color:#FF8700;"></div>
+          <div class="color-button" style="background-color:#DEFF0A;"></div>
+          <div class="color-button" style="background-color:#A1FF0A;"></div>
+          <div class="color-button" style="background-color:#0AFF99;"></div>
+          <div class="color-button" style="background-color:#FFD300;"></div>
+          <div class="color-button" style="background-color:#0AEFFF;"></div>
+          <div class="color-button" style="background-color:#147DF5;"></div>
+          <div class="color-button" style="background-color:#580AFF;"></div>
+          <div class="color-button" style="background-color:#BE0AFF;"></div>
+        </div>
 
+        <div class="color-button-container" onclick="sparkleItUp('pastel')">
+          <div class="color-button" style="background-color:#FBF8CC;"></div>
+          <div class="color-button" style="background-color:#FDE4CF;"></div>
+          <div class="color-button" style="background-color:#FFCFD2;"></div>
+          <div class="color-button" style="background-color:#F1C0E8;"></div>
+          <div class="color-button" style="background-color:#CFBAF0;"></div>
+          <div class="color-button" style="background-color:#A3C4F3;"></div>
+          <div class="color-button" style="background-color:#90DBF4;"></div>
+          <div class="color-button" style="background-color:#8EECF5;"></div>
+          <div class="color-button" style="background-color:#98F5E1;"></div>
+          <div class="color-button" style="background-color:#B9FBC0;"></div>
+        </div>
+        <!-- New color scheme -->
+        <div class="color-button-container" onclick="sparkleItUp('pink')">
+          <div class="color-button" style="background-color:#ff0a54;"></div>
+          <div class="color-button" style="background-color:#ff477e;"></div>
+          <div class="color-button" style="background-color:#ff5c8a;"></div>
+          <div class="color-button" style="background-color:#ff7096;"></div>
+          <div class="color-button" style="background-color:#ff85a1;"></div>
+          <div class="color-button" style="background-color:#ff99ac;"></div>
+          <div class="color-button" style="background-color:#fbb1bd;"></div>
+          <div class="color-button" style="background-color:#f9bec7;"></div>
+          <div class="color-button" style="background-color:#f7cad0;"></div>
+          <div class="color-button" style="background-color:#fae0e4;"></div>
+        </div>
+        <!-- Mindaro color scheme -->
+        <div class="color-button-container" onclick="sparkleItUp('mindaro')">
+          <div class="color-button" style="background-color:#d9ed92;"></div>
+          <div class="color-button" style="background-color:#b5e48c;"></div>
+          <div class="color-button" style="background-color:#99d98c;"></div>
+          <div class="color-button" style="background-color:#76c893;"></div>
+          <div class="color-button" style="background-color:#52b69a;"></div>
+          <div class="color-button" style="background-color:#34a0a4;"></div>
+          <div class="color-button" style="background-color:#168aad;"></div>
+          <div class="color-button" style="background-color:#1a759f;"></div>
+          <div class="color-button" style="background-color:#1e6091;"></div>
+          <div class="color-button" style="background-color:#184e77;"></div>
+        </div>
+
+        
     </div>
   </div>
 
@@ -158,6 +200,7 @@
   <script type="module" src="main.js"></script>
   <script src="funfacts.js"></script>
   <script type="module" src="utils.js"></script>
+  <script src="colors.js"></script>
 </body>
 
 </html>

@@ -90,43 +90,7 @@ export function getDeskGroups() {
 }
 
 
-export function sparkleItUp() {
-  
-    let palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
-    let emojis = grid.emojis;
-    let groups = getDeskGroups();
-  
-    palette = palette.sort(() => Math.random() - 0.5);
-    emojis = emojis.sort(() => Math.random() - 0.5);
-  
-    let groupEmojis = [];
-    groups.forEach((group, index) => {
-      if (index < palette.length) {
-        const color = palette[index];
-        const emoji = emojis[0];
-        group.forEach(group => { group.color = color; });
-        console.log("Emoji:", emoji);
-        // Bruk gridX/gridY for posisjon
-        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length + grid.cellSize/2;
-        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length + grid.cellSize/2;
-  
-        //groupEmojis.push({ text: emoji, x: centerX, y: centerY });
-      }
-    });
-  
-    grid.groupEmojis = groupEmojis; // Lagre for bruk i draw()
-    
-    // Tildel unike farger til rundbordene også (som før)
-    let availableColors = [...palette];
-    grid.roundtables.forEach(table => {
-      if (availableColors.length > 0) {
-        table.color = availableColors.pop();
-      }
-    });
-  
-    unsavedChanges = true;
-    grid.draw();
-  }
+
 
 
 
@@ -458,6 +422,78 @@ canvasCont.addEventListener("mouseenter", function(event) {
     
     
   });
+
+
+  function toggleColorScheme(scheme){
+    let intense = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
+    let pastel = [
+      "#FBF8CC", "#FDE4CF", "#FFCFD2", "#F1C0E8", "#CFBAF0",
+      "#A3C4F3", "#90DBF4", "#8EECF5", "#98F5E1", "#B9FBC0"
+    ];
+    let pink = [
+      "#ff0a54", "#ff477e", "#ff5c8a", "#ff7096", "#ff85a1",
+      "#ff99ac", "#fbb1bd", "#f9bec7", "#f7cad0", "#fae0e4"
+    ];
+    let mindaro = [
+      "#d9ed92", "#b5e48c", "#99d98c", "#76c893", "#52b69a",
+      "#34a0a4", "#168aad", "#1a759f", "#1e6091", "#184e77"
+    ];
+
+    if (scheme == 'intense') {
+        return intense;
+    } else if (scheme == 'pastel') {
+        return pastel;
+    }
+    else if (scheme == 'pink') {
+        return pinky;
+    } else if (scheme == 'mindaro') {
+        return mindaro;
+    } else {
+        console.error("Unknown color scheme:", scheme);
+        return [];
+    }
+
+
+}
+
+export function sparkleItUp(scheme) {
+    console.log("Sparkling it up with scheme:", scheme);
+    let palette = toggleColorScheme(scheme);
+    let emojis = grid.emojis;
+    let groups = getDeskGroups();
+  
+    palette = palette.sort(() => Math.random() - 0.5);
+    emojis = emojis.sort(() => Math.random() - 0.5);
+  
+    let groupEmojis = [];
+    groups.forEach((group, index) => {
+      if (index < palette.length) {
+        const color = palette[index];
+        const emoji = emojis[0];
+        group.forEach(group => { group.color = color; });
+        // Bruk gridX/gridY for posisjon
+        let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length + grid.cellSize/2;
+        let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length + grid.cellSize/2;
+  
+        //groupEmojis.push({ text: emoji, x: centerX, y: centerY });
+      }
+    });
+  
+    grid.groupEmojis = groupEmojis; // Lagre for bruk i draw()
+    
+    // Tildel unike farger til rundbordene også (som før)
+    let availableColors = [...palette];
+    grid.roundtables.forEach(table => {
+      if (availableColors.length > 0) {
+        table.color = availableColors.pop();
+      }
+    });
+  
+    unsavedChanges = true;
+    grid.draw();
+  }
+
+  window.sparkleItUp = sparkleItUp;
     
 
 
@@ -469,5 +505,5 @@ window.createNewClass = createNewClass;
 window.saveClass = saveClass;
 window.deleteClass = deleteClass;
 window.assignStudents = assignStudents;
-window.sparkleItUp = sparkleItUp;
+
 window.selectOption = selectOption;
