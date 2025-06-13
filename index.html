@@ -45,7 +45,7 @@
       </div>
       <div class="save-section">
         <div class="dropdown">
-          <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg en klasse</div>
+          <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg klasse</div>
           <ul class="dropdown-options">
             <!-- Lagrede klasser fylles inn dynamisk -->
           </ul>
@@ -53,24 +53,22 @@
 
 
 
-        <button onclick="createNewClass()">⭐ Opprett ny klasse</button>
-        <button onclick="saveClass()">💾 Lagre klasse</button>
-        <button onclick="deleteClass()">❌ Slett klasse</button>
+        <button onclick="createNewClass()">⭐ Opprett klasse</button>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px; gap:4px;">
+           <button onclick="saveClass()">💾 Lagre</button>
+            <button onclick="deleteClass()">❌ Slett</button>
+        </div>
+       
       </div>
       <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)"></textarea>
-      <button onclick="assignStudents()">Plasser elever tilfeldig</button>
+      <button onclick="assignStudents()">✨Plasser elever✨</button>
       <div id="assignmentWarning">⚠️ Ikke alle elever har blitt tildelt plass!</div>
-      <button onclick="sparkleItUp()">✨ Sparkle it up ✨</button>
-      <div id="fact-container" class="save-section">
-        <button id="prev" class="fact-btn" onclick="prevFunfact()">◀</button>
-        <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
-        <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
-      </div>
+      
 
       <!-- Fargevelger med sirkler -->
       <div class="color-picker"
         style="background-color:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
-        <h3>Fargepallett</h3>
+        <p id="color-headline">🎨 Farger</p>
         <div class="color-button-container" onclick="sparkleItUp('intense')">
           <div class="color-button" style="background-color:#FF0000;"></div>
           <div class="color-button" style="background-color:#FF8700;"></div>
@@ -125,6 +123,11 @@
 
         
     </div>
+    <div id="fact-container" class="save-section">
+        <button id="prev" class="fact-btn" onclick="prevFunfact()">◀</button>
+        <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
+        <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
+      </div>
   </div>
 
   <!-- Fullskjermknapp -->
@@ -192,10 +195,7 @@
   <canvas id="offScreenCanvas" style="display:none;"></canvas>
 
   <!-- Footer -->
-  <footer>
-    <a href="/info.html">Les om fremtidige oppdateringer og vanlig stilte spørsmål her. Du kan også sende feedback på
-      Klassekartgeneratoren 💯</a>
-  </footer>
+
 
   <script type="module" src="main.js"></script>
   <script src="funfacts.js"></script>

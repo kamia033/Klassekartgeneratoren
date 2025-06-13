@@ -445,7 +445,7 @@ canvasCont.addEventListener("mouseenter", function(event) {
         return pastel;
     }
     else if (scheme == 'pink') {
-        return pinky;
+        return pink;
     } else if (scheme == 'mindaro') {
         return mindaro;
     } else {
