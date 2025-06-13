@@ -68,6 +68,7 @@ canvas {
   display: block;
 }
 
+
 /* Høyre panel */
 .controls {
   flex: 1;
@@ -126,25 +127,25 @@ textarea {
 
 .controls button {
   padding: 10px 15px;
-  background-color: var(--accent);
-  color: var(--font);
-  border: none;
-  border-radius: 4px;
+  background-color: #ffffff;
+  color: black;
+  border: 3px solid #121212;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-family: 'Roboto', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
   line-height: 1;
 
   transition: all 200ms linear;
-  border-radius: 4px;
+  
   width: 100%;
   letter-spacing: 1px;
 }
 
 .controls button:hover {
-  background-color: var(--accent_hover);
+  background-color: #dbdbdb;
 }
 
 input[type="text"] {
@@ -275,10 +276,12 @@ footer {
   color: #777;
 }
 
+
+
 /* Grunnstil for dropdown-container */
 .dropdown {
   font-family: 'Roboto', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 15px;
   line-height: 2;
   height: 50px;
@@ -292,30 +295,46 @@ footer {
   justify-content: center;
   text-align: center;
   border: none;
-  background-color: var(--accent);
+ 
   cursor: pointer;
-  color: white;
-  box-shadow: 0 12px 35px 0 rgba(255, 235, 167, .15);
+
   position: relative;
+
+
+  
+  background-color: #ffffff;
+  color: black;
+  border: 3px solid #121212;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  line-height: 1;
+
+  transition: all 200ms linear;
+  
+  width: 100%;
+  letter-spacing: 1px;
 }
 
 /* Stil for den valgte dropdown-verdien */
 .dropdown-selected {
-  padding: 10px 15px;
+  padding: 20px 20px;
   width: 100%;
   background-color: transparent;
   border-radius: 4px;
   cursor: pointer;
   text-align: center;
-  font-weight: 500;
-  color: white;
+  font-weight: 600;
+  color: black;
   transition: all 0.3s ease;
+  
 }
 
 /* Hover-effekt for den valgte dropdown-verdien */
-.dropdown-selected:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.dropdown:hover {
+  background-color: #dbdbdb
 }
 
 /* Dropdown-liste (som skjules når den ikke er aktiv) */
@@ -329,24 +348,26 @@ footer {
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   z-index: 10;
-  padding: 5px 0;
+  padding: 0 0;
   max-height: 200px;
   /* Maksimal høyde for listen */
   overflow-y: auto;
   /* Rull når det er for mange elementer */
   list-style: none;
   margin: 0;
+  border: 3px solid #121212;
 }
 
 /* Stil for hvert alternativ i dropdown-liste */
 .dropdown-options li {
   padding: 12px 20px;
   cursor: pointer;
-  color: #333;
-  font-weight: 400;
+  color: black;
+  font-weight: 600;
   border-radius: 4px;
   transition: background-color 0.3s ease;
   text-align: center;
+
 }
 
 /* Hover-effekt for dropdown-alternativer */
@@ -363,7 +384,7 @@ footer {
   content: '▼';
   /* Unicode for nedoverpil */
   font-size: 18px;
-  color: white;
+  color: black;
   position: absolute;
   right: 15px;
   /* Plasser pilen på høyre side */
