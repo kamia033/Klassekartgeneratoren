@@ -1,2 +1,2 @@
-# Klassekartgeneratoren-3lias
+# Klassekartgeneratoren
 Klassekartgenerator tilpasset behov på Vika VGS
