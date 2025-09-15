@@ -19,6 +19,18 @@
         <div id="fullscreen-button"> [ ] Fullskjerm</div>
         <div class="scroll-wrapper">
           <canvas id="gridCanvas"></canvas>
+          <div id="groups-visual-container" style="display: none;">
+            <div id="groups-visual-content">
+              <div class="groups-header">
+                <h2>🎯 Tilfeldige grupper</h2>
+                <div class="groups-actions">
+                  <button onclick="exportGroupsAsText()" class="group-action-btn">📄 Eksporter</button>
+                  <button onclick="copyGroupsToClipboard()" class="group-action-btn">📋 Kopier</button>
+                </div>
+              </div>
+              <div id="groups-visual-grid"></div>
+            </div>
+          </div>
         </div>
         <div id="canvas-controls" class="canvas-controls">
           <div class="slider-container">
@@ -36,13 +48,20 @@
     </div>
     <!-- Høyre panel -->
     <div class="controls">
-      <div id="mode-slider" class="save-section">
-
-        <button id="mode-box" onclick="changeMode()">
-          <div id="active-mode" class="mode-button">Vindu</div>
-          <div id="inactive-mode" class="mode-button">Fullskjerm</div>
-        </button>
+      <!-- Tab-navigasjon -->
+      <div class="tab-navigation">
+        <button class="tab-button active" onclick="switchTab('klassekart')">📍 Klassekart</button>
+        <button class="tab-button" onclick="switchTab('grupper')">👥 Grupper</button>
       </div>
+
+      <!-- Klassekart Tab -->
+      <div id="klassekart-tab" class="tab-content active">
+        <div id="mode-slider" class="save-section">
+          <button id="mode-box" onclick="changeMode()">
+            <div id="active-mode" class="mode-button">Vindu</div>
+            <div id="inactive-mode" class="mode-button">Fullskjerm</div>
+          </button>
+        </div>
       <div class="save-section">
         <div class="dropdown">
           <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg klasse</div>
@@ -122,15 +141,41 @@
         </div>
 
         
+        
     </div>
     <div id="fact-container" class="save-section">
         <button id="prev" class="fact-btn" onclick="prevFunfact()">◀</button>
         <p id="fact">Trykk på en pult for å se hvilken elev som sitter der.</p>
         <button id="next" class="fact-btn" onclick="nextFunfact()">▶</button>
       </div>
-  </div>
+    </div>
 
-  <!-- Fullskjermknapp -->
+    <!-- Grupper Tab -->
+    <div id="grupper-tab" class="tab-content">
+      <div class="save-section">
+        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">👥 Elever i grupper</p>
+        <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="height: 120px;"></textarea>
+        <button onclick="syncFromClassroom()">📋 Hent fra klassekart</button>
+      </div>
+
+      <div class="save-section">
+        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">⚙️ Gruppestørrelse</p>
+        <div class="group-size-controls">
+          <input type="number" id="groupSize" min="2" max="10" value="4">
+          <div class="group-size-buttons">
+            <button onclick="adjustGroupSize(-1)">-</button>
+            <button onclick="adjustGroupSize(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-section">
+        <button onclick="generateRandomGroups()">🎲 Generer tilfeldige grupper</button>
+        <button onclick="regenerateGroups()">🔄 Lag nye grupper</button>
+      </div>
+    </div>
+    </div>
+  </div>  <!-- Fullskjermknapp -->
 
 
   <!-- Standard kontekstmeny -->
@@ -201,6 +246,7 @@
   <script src="funfacts.js"></script>
   <script type="module" src="utils.js"></script>
   <script src="colors.js"></script>
+  <script type="module" src="groups.js"></script>
 </body>
 
 </html>
