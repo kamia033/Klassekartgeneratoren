@@ -198,6 +198,12 @@ export function assignStudents() {
       grid.loadState(savedClasses[className]);
       grid.currentClass = className;
       document.querySelector('.dropdown-selected').textContent = className;
+      
+      // Synkroniser også til grupper-taben hvis den finnes
+      const groupStudentList = document.getElementById("groupStudentList");
+      if (groupStudentList && savedClasses[className].studentList) {
+        groupStudentList.value = savedClasses[className].studentList;
+      }
     }
   }
   
@@ -226,6 +232,13 @@ export function assignStudents() {
     grid.others = [];
     grid.roundtables = [];
     document.getElementById("studentList").value = "";
+    
+    // Tøm også grupper-elevlisten hvis den finnes
+    const groupStudentList = document.getElementById("groupStudentList");
+    if (groupStudentList) {
+      groupStudentList.value = "";
+    }
+    
     savedClasses[newName] = grid.saveState();
     localStorage.setItem("classes", JSON.stringify(savedClasses));
     updateClassDropdown();

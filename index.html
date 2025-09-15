@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <title>Klassekartgeneratoren</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="style.css">
   <link rel="stylesheet" type="text/css" href="style_color.css">
 </head>
@@ -19,17 +22,11 @@
         <div id="fullscreen-button"> [ ] Fullskjerm</div>
         <div class="scroll-wrapper">
           <canvas id="gridCanvas"></canvas>
-          <div id="groups-visual-container" style="display: none;">
-            <div id="groups-visual-content">
-              <div class="groups-header">
-                <h2>🎯 Tilfeldige grupper</h2>
-                <div class="groups-actions">
-                  <button onclick="exportGroupsAsText()" class="group-action-btn">📄 Eksporter</button>
-                  <button onclick="copyGroupsToClipboard()" class="group-action-btn">📋 Kopier</button>
-                </div>
-              </div>
-              <div id="groups-visual-grid"></div>
-            </div>
+        </div>
+        <div id="groups-visual-container" style="display: none;">
+          <div id="groups-visual-content">
+        
+            <div id="groups-visual-grid"></div>
           </div>
         </div>
         <div id="canvas-controls" class="canvas-controls">
@@ -49,13 +46,16 @@
     <!-- Høyre panel -->
     <div class="controls">
       <!-- Tab-navigasjon -->
-      <div class="tab-navigation">
-        <button class="tab-button active" onclick="switchTab('klassekart')">📍 Klassekart</button>
-        <button class="tab-button" onclick="switchTab('grupper')">👥 Grupper</button>
-      </div>
+      
 
       <!-- Klassekart Tab -->
       <div id="klassekart-tab" class="tab-content active">
+        <div class="tab-navigation">
+          <div class="save-section" style="display: flex; gap: 4px;">
+            <button id="klassekart-btn" onclick="switchTab('klassekart')" class="active-tab">📍 Klassekart</button>
+            <button id="grupper-btn" onclick="switchTab('grupper')">👥 Grupper</button>
+          </div>
+        </div>
         <div id="mode-slider" class="save-section">
           <button id="mode-box" onclick="changeMode()">
             <div id="active-mode" class="mode-button">Vindu</div>
@@ -152,26 +152,81 @@
 
     <!-- Grupper Tab -->
     <div id="grupper-tab" class="tab-content">
-      <div class="save-section">
-        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">👥 Elever i grupper</p>
-        <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="height: 120px;"></textarea>
-        <button onclick="syncFromClassroom()">📋 Hent fra klassekart</button>
-      </div>
-
-      <div class="save-section">
-        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">⚙️ Gruppestørrelse</p>
-        <div class="group-size-controls">
-          <input type="number" id="groupSize" min="2" max="10" value="4">
-          <div class="group-size-buttons">
-            <button onclick="adjustGroupSize(-1)">-</button>
-            <button onclick="adjustGroupSize(1)">+</button>
-          </div>
+      <div class="tab-navigation">
+        <div class="save-section" style="display: flex; gap: 4px;">
+          <button id="klassekart-btn-2" onclick="switchTab('klassekart')">📍 Klassekart</button>
+          <button id="grupper-btn-2" onclick="switchTab('grupper')" class="active-tab">� Grupper</button>
         </div>
       </div>
+      <div class="save-section">
+        <div class="dropdown">
+          <div class="dropdown-selected" id="group-dropdown-selected" onclick="toggleGroupDropdown()">🧑‍🏫 Velg klasse</div>
+          <ul class="dropdown-options" id="group-dropdown-options">
+            <!-- Lagrede klasser fylles inn dynamisk -->
+          </ul>
+        </div>
+
+        <button onclick="createNewClass()">⭐ Opprett klasse</button>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px; gap:4px;">
+           <button onclick="saveClass()">💾 Lagre</button>
+            <button onclick="deleteClass()">❌ Slett</button>
+        </div>
+      </div>
+      
+      <div style="background-color: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">👥 Elevliste</p>
+        <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="margin: 0; width: calc(100% - 20px);"></textarea>
+      </div>
 
       <div class="save-section">
-        <button onclick="generateRandomGroups()">🎲 Generer tilfeldige grupper</button>
-        <button onclick="regenerateGroups()">🔄 Lag nye grupper</button>
+        <div class="group-settings-container" style="background-color: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+          <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">⚙️ Gruppeinnstillinger</p>
+          
+          <!-- Generer grupper knapp øverst -->
+          <button onclick="generateRandomGroups()" style="width: 100%; margin-bottom: 15px;">🎲 Generer tilfeldige grupper</button>
+          
+          <!-- Horisontale kontroller -->
+          <div class="group-controls-horizontal">
+            <div class="group-control-item">
+              <label>Gruppestørrelse:</label>
+              <div class="group-size-controls">
+                <input type="number" id="groupSize" min="2" max="10" value="4" oninput="updateGroupSizeFromInput()">
+                <div class="group-size-buttons">
+                  <button onclick="adjustGroupSize(-1)">-</button>
+                  <button onclick="adjustGroupSize(1)">+</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="group-control-item">
+              <label>Antall grupper:</label>
+              <div class="group-count-controls">
+                <input type="number" id="groupCount" min="2" max="15" value="3" oninput="updateGroupCountFromInput()">
+                <div class="group-count-buttons">
+                  <button onclick="adjustGroupCount(-1)">-</button>
+                  <button onclick="adjustGroupCount(1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="group-preview-content"></div>
+          <!-- Checkboxes for ekstra funksjoner -->
+          <div class="group-options">
+            <label>
+              <input type="checkbox" id="keepExtraStudentsSeparate">
+              Hold ekstra elever separat
+            </label>
+            <label>
+              <input type="checkbox" id="selectGroupLeaders">
+              Velg gruppeleder
+            </label>
+            <label>
+              <input type="checkbox" id="showAnimation" checked>
+              ✨ Vis animasjon
+            </label>
+          </div>
+        </div>
+        
       </div>
     </div>
     </div>

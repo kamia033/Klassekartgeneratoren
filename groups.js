@@ -1,52 +1,39 @@
 // groups.js - Håndtering av tilfeldig gruppeoppdeling
-import * as utils from './utils.js';
+// import * as utils from './utils.js';
+
+console.log('groups.js loaded successfully');
 
 let currentGroupStudents = [];
 let generatedGroups = [];
 
-// Tab-switching funksjonalitet
-window.switchTab = function(tabName) {
-  // Fjern active-klasse fra alle tabs og knapper
-  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-  
-  // Legg til active-klasse på valgt tab og knapp
-  document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-  document.getElementById(`${tabName}-tab`).classList.add('active');
-  
-  // Håndter visning av canvas vs grupper
-  const canvas = document.getElementById('gridCanvas');
-  const groupsContainer = document.getElementById('groups-visual-container');
-  
-  if (tabName === 'grupper') {
-    // Synkroniser elevliste automatisk når vi bytter til grupper-tab
-    syncFromClassroom();
-    canvas.style.display = 'none';
-    if (generatedGroups.length > 0) {
-      groupsContainer.style.display = 'block';
-    }
-  } else {
-    canvas.style.display = 'block';
-    groupsContainer.style.display = 'none';
-  }
-};
+// Midlertidige utils-funksjoner
+function saveToLocalStorage(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
-// Synkroniser fra klassekart (automatisk og manuelt)
-window.syncFromClassroom = function() {
-  const studentListValue = document.getElementById("studentList").value;
-  const groupStudentList = document.getElementById("groupStudentList");
-  
-  if (studentListValue.trim()) {
-    groupStudentList.value = studentListValue;
-    currentGroupStudents = studentListValue.split('\n')
-      .map(name => name.trim())
-      .filter(name => name !== '');
-    
-    utils.showNotification(`✅ Synkroniserte ${currentGroupStudents.length} elever`, 2000);
-  } else {
-    utils.showNotification("⚠️ Ingen elever funnet i klassekart!", 2000);
+function getFromLocalStorage(key) {
+  const item = localStorage.getItem(key);
+  return item ? JSON.parse(item) : null;
+}
+
+// Legg til event listener når DOM er klar
+document.addEventListener('DOMContentLoaded', function() {
+  const groupStudentList = document.getElementById('groupStudentList');
+  if (groupStudentList) {
+    // Oppdater localStorage og forhåndsvisning når brukeren endrer på listen
+    groupStudentList.addEventListener('input', function() {
+      updateGroupPreview();
+      // Debounce localStorage-oppdatering for å unngå for mange kall
+      clearTimeout(groupStudentList.updateTimeout);
+      groupStudentList.updateTimeout = setTimeout(() => {
+        syncFromGroupsToClassroom();
+      }, 500);
+    });
   }
-};
+  
+  // Vis initial forhåndsvisning
+  updateGroupPreview();
+});
 
 // Juster gruppestørrelse
 window.adjustGroupSize = function(change) {
@@ -59,208 +46,461 @@ window.adjustGroupSize = function(change) {
   if (newValue > 10) newValue = 10;
   
   input.value = newValue;
+  
+  // Oppdater automatisk antall grupper
+  updateGroupSizeFromInput();
 };
 
-// Generer tilfeldige grupper
-window.generateRandomGroups = function() {
-  // Hent elevliste fra tekstfelt i grupper-tab
-  const groupStudentListValue = document.getElementById("groupStudentList").value;
-  currentGroupStudents = groupStudentListValue.split('\n')
-    .map(name => name.trim())
-    .filter(name => name !== '');
-    
-  if (currentGroupStudents.length === 0) {
-    utils.showNotification("⚠️ Ingen elever i listen! Legg til elevnavn først.", 3000);
-    return;
-  }
-  
+// Kontroller for gruppeantall
+window.adjustGroupCount = function(delta) {
+  const input = document.getElementById('groupCount');
+  const currentValue = parseInt(input.value);
+  const newValue = Math.max(parseInt(input.min), Math.min(parseInt(input.max), currentValue + delta));
+  input.value = newValue;
+  updateGroupCountFromInput();
+};
+
+// Oppdater gruppe størrelse input
+window.updateGroupSizeFromInput = function() {
   const groupSize = parseInt(document.getElementById('groupSize').value);
-  generatedGroups = createRandomGroups(currentGroupStudents, groupSize);
+  const studentCount = getStudentsFromGroupTab().length;
   
-  displayGroupsVisually();
-  utils.showNotification(`🎲 Genererte ${generatedGroups.length} grupper!`, 2000);
-};
-
-// Regenerer gruppene med samme elever
-window.regenerateGroups = function() {
-  // Oppdater elevliste fra tekstfelt
-  const groupStudentListValue = document.getElementById("groupStudentList").value;
-  currentGroupStudents = groupStudentListValue.split('\n')
-    .map(name => name.trim())
-    .filter(name => name !== '');
+  if (studentCount > 0) {
+    const maxGroups = Math.floor(studentCount / groupSize);
+    const groupCountInput = document.getElementById('groupCount');
     
-  if (currentGroupStudents.length === 0) {
-    utils.showNotification("⚠️ Ingen elever i listen! Legg til elevnavn først.", 3000);
-    return;
+    // Oppdater antall grupper basert på størrelse
+    if (maxGroups > 0) {
+      groupCountInput.value = maxGroups;
+    }
   }
-  
-  generateRandomGroups();
 };
 
-// Opprett tilfeldige grupper
-function createRandomGroups(students, groupSize) {
-  // Shuffle elevlisten
-  const shuffledStudents = [...students];
-  shuffleArray(shuffledStudents);
+window.updateGroupCountFromInput = function() {
+  const groupCount = parseInt(document.getElementById('groupCount').value);
+  const studentCount = getStudentsFromGroupTab().length;
   
+  if (studentCount > 0) {
+    const maxGroupSize = Math.floor(studentCount / groupCount);
+    const groupSizeInput = document.getElementById('groupSize');
+    
+    // Oppdater gruppestørrelse basert på antall grupper
+    if (maxGroupSize > 0) {
+      groupSizeInput.value = Math.max(2, maxGroupSize);
+    }
+  }
+};
+
+// Funksjon for å generere tilfeldige grupper med Fisher-Yates shuffle
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Funksjon for å dele elever i grupper
+function createGroups(students, groupSize, groupCount, keepExtraStudentsSeparate) {
+  const shuffledStudents = shuffleArray(students);
   const groups = [];
-  const totalStudents = shuffledStudents.length;
-  const numberOfCompleteGroups = Math.floor(totalStudents / groupSize);
-  const remainder = totalStudents % groupSize;
   
-  // Opprett komplette grupper
-  for (let i = 0; i < numberOfCompleteGroups; i++) {
-    const group = shuffledStudents.slice(i * groupSize, (i + 1) * groupSize);
+  // Opprett grupper basert på valg
+  let studentsPerGroup = Math.floor(shuffledStudents.length / groupCount);
+  let extraStudents = shuffledStudents.length % groupCount;
+  
+  let currentIndex = 0;
+  
+  for (let i = 0; i < groupCount; i++) {
+    const group = {
+      name: `Gruppe ${i + 1}`,
+      students: []
+    };
+    
+    // Legg til basisantall elever
+    for (let j = 0; j < studentsPerGroup; j++) {
+      if (currentIndex < shuffledStudents.length) {
+        group.students.push(shuffledStudents[currentIndex++]);
+      }
+    }
+    
+    // Distribuer ekstra elever jevnt hvis ikke valgt å holde separat
+    if (!keepExtraStudentsSeparate && extraStudents > 0 && i < extraStudents) {
+      if (currentIndex < shuffledStudents.length) {
+        group.students.push(shuffledStudents[currentIndex++]);
+      }
+    }
+    
     groups.push(group);
   }
   
-  // Håndter gjenværende elever
-  if (remainder > 0) {
-    const remainingStudents = shuffledStudents.slice(numberOfCompleteGroups * groupSize);
-    
-    if (remainder === 1 && groups.length > 0) {
-      // Legg til den siste eleven i en tilfeldig gruppe
-      const randomGroupIndex = Math.floor(Math.random() * groups.length);
-      groups[randomGroupIndex].push(...remainingStudents);
-    } else if (remainder >= groupSize / 2) {
-      // Opprett en ny gruppe hvis det er nok elever
-      groups.push(remainingStudents);
-    } else {
-      // Fordel gjenværende elever i eksisterende grupper
-      remainingStudents.forEach((student, index) => {
-        const targetGroupIndex = index % groups.length;
-        groups[targetGroupIndex].push(student);
-      });
-    }
+  // Håndter eventuelle gjenværende elever
+  if (keepExtraStudentsSeparate && currentIndex < shuffledStudents.length) {
+    const extraGroup = {
+      name: 'Ekstra elever',
+      students: shuffledStudents.slice(currentIndex)
+    };
+    groups.push(extraGroup);
   }
   
   return groups;
 }
 
-// Fisher-Yates shuffle algoritme
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+// Hovedfunksjon for å generere tilfeldige grupper
+window.generateRandomGroups = function() {
+  const students = getStudentsFromGroupTab();
+  
+  if (students.length === 0) {
+    alert('Legg til elever først!');
+    return;
   }
-  return array;
+  
+  const groupSize = parseInt(document.getElementById('groupSize').value);
+  const groupCount = parseInt(document.getElementById('groupCount').value);
+  const keepExtraStudentsSeparate = document.getElementById('keepExtraStudentsSeparate').checked;
+  const selectGroupLeaders = document.getElementById('selectGroupLeaders').checked;
+  const showAnimation = document.getElementById('showAnimation').checked;
+  
+  // Generer gruppene
+  generatedGroups = createGroups(students, groupSize, groupCount, keepExtraStudentsSeparate);
+  
+  // Legg til gruppeledere hvis valgt
+  if (selectGroupLeaders) {
+    generatedGroups.forEach(group => {
+      if (group.students.length > 0) {
+        group.leader = group.students[0]; // Første elev blir gruppeleder
+      }
+    });
+  }
+  
+  // Vis gruppene
+  if (showAnimation) {
+    displayGroupsWithAnimation();
+  } else {
+    displayGroups();
+  }
+  
+  // Lagre til localStorage
+  saveToLocalStorage('lastGeneratedGroups', generatedGroups);
+};
+
+// Gjør funksjonen tilgjengelig globalt
+window.generateRandomGroups = generateRandomGroups;
+
+// Funksjon for å hente elever fra grupper-tab
+function getStudentsFromGroupTab() {
+  const studentList = document.getElementById('groupStudentList').value;
+  return studentList
+    .split('\n')
+    .map(name => name.trim())
+    .filter(name => name.length > 0);
 }
 
-// Vis genererte grupper visuelt på venstre side
-function displayGroupsVisually() {
-  const container = document.getElementById('groups-visual-grid');
+// Vis gruppene uten animasjon
+function displayGroups() {
+  const container = document.getElementById('groups-visual-container');
+  if (!container) {
+    // Opprett container hvis den ikke finnes
+    createGroupsContainer();
+  }
+  
   const visualContainer = document.getElementById('groups-visual-container');
-  
-  container.innerHTML = '';
+  visualContainer.innerHTML = '';
   
   generatedGroups.forEach((group, index) => {
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'visual-group-item';
+    const groupCard = document.createElement('div');
+    groupCard.className = 'group-card';
+    groupCard.style.backgroundColor = getUniqueGroupColor(index);
     
-    const headerDiv = document.createElement('div');
-    headerDiv.className = 'visual-group-header';
+    const groupTitle = document.createElement('h3');
+    groupTitle.textContent = group.name;
+    groupCard.appendChild(groupTitle);
     
-    const numberDiv = document.createElement('div');
-    numberDiv.className = 'group-number';
-    numberDiv.textContent = index + 1;
-    
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = `Gruppe ${index + 1}`;
-    
-    headerDiv.appendChild(numberDiv);
-    headerDiv.appendChild(titleSpan);
-    
-    const membersDiv = document.createElement('div');
-    membersDiv.className = 'visual-group-members';
-    
-    group.forEach(student => {
-      const memberDiv = document.createElement('div');
-      memberDiv.className = 'group-member';
-      memberDiv.textContent = student;
-      membersDiv.appendChild(memberDiv);
+    const studentsList = document.createElement('ul');
+    group.students.forEach(student => {
+      const studentItem = document.createElement('li');
+      studentItem.textContent = student;
+      if (group.leader === student) {
+        studentItem.classList.add('group-leader');
+        studentItem.textContent += ' 👑';
+      }
+      studentsList.appendChild(studentItem);
     });
     
-    groupDiv.appendChild(headerDiv);
-    groupDiv.appendChild(membersDiv);
-    container.appendChild(groupDiv);
+    groupCard.appendChild(studentsList);
+    visualContainer.appendChild(groupCard);
   });
   
-  // Vis den visuelle containeren
   visualContainer.style.display = 'block';
-  // Skjul canvas
-  document.getElementById('gridCanvas').style.display = 'none';
 }
 
-// Oppdater gruppe-display når elever endres (fjernet siden vi ikke bruker den gamle displayet)
-function updateGroupDisplay() {
-  if (generatedGroups.length > 0) {
-    displayGroupsVisually();
+// Vis gruppene med animasjon
+function displayGroupsWithAnimation() {
+  const container = document.getElementById('groups-visual-container');
+  if (!container) {
+    createGroupsContainer();
+  }
+  
+  const visualContainer = document.getElementById('groups-visual-container');
+  visualContainer.innerHTML = '';
+  visualContainer.style.display = 'block';
+  
+  let currentGroupIndex = 0;
+  
+  function animateNextGroup() {
+    if (currentGroupIndex >= generatedGroups.length) return;
+    
+    const group = generatedGroups[currentGroupIndex];
+    const groupCard = document.createElement('div');
+    groupCard.className = 'group-card';
+    groupCard.style.backgroundColor = getUniqueGroupColor(currentGroupIndex);
+    groupCard.style.opacity = '0';
+    groupCard.style.transform = 'scale(0.8)';
+    
+    const groupTitle = document.createElement('h3');
+    groupTitle.textContent = group.name;
+    groupCard.appendChild(groupTitle);
+    
+    const studentsList = document.createElement('ul');
+    group.students.forEach(student => {
+      const studentItem = document.createElement('li');
+      studentItem.textContent = student;
+      if (group.leader === student) {
+        studentItem.classList.add('group-leader');
+        studentItem.textContent += ' 👑';
+      }
+      studentsList.appendChild(studentItem);
+    });
+    
+    groupCard.appendChild(studentsList);
+    visualContainer.appendChild(groupCard);
+    
+    // Animer inn
+    setTimeout(() => {
+      groupCard.style.transition = 'all 0.3s ease';
+      groupCard.style.opacity = '1';
+      groupCard.style.transform = 'scale(1)';
+    }, 10);
+    
+    currentGroupIndex++;
+    setTimeout(animateNextGroup, 200);
+  }
+  
+  animateNextGroup();
+}
+
+// Opprett container for gruppene hvis den ikke finnes
+function createGroupsContainer() {
+  const mainContent = document.querySelector('#grupper-tab') || document.body;
+  const container = document.createElement('div');
+  container.id = 'groups-visual-container';
+  container.className = 'groups-container';
+  mainContent.appendChild(container);
+}
+
+// Generer unike farger for grupper
+function getUniqueGroupColor(index) {
+  const colors = [
+    '#FFE5E5', '#E5F3FF', '#E5FFE5', '#FFFAE5', '#F0E5FF',
+    '#FFE5F0', '#E5FFFF', '#FFE5CC', '#E5E5FF', '#F5FFE5',
+    '#FFCCE5', '#E5FFCC', '#CCE5FF', '#FFCC99', '#CCFFCC'
+  ];
+  return colors[index % colors.length];
+}
+
+// Synkroniseringsfunksjoner
+function syncFromClassroomToGroups() {
+  const classroomList = document.getElementById('studentList');
+  const groupsList = document.getElementById('groupStudentList');
+  
+  if (classroomList && groupsList) {
+    groupsList.value = classroomList.value;
+    currentGroupStudents = getStudentsFromGroupTab();
   }
 }
 
-// Eksporter grupper som tekst
-window.exportGroupsAsText = function() {
-  if (generatedGroups.length === 0) {
-    utils.showNotification("⚠️ Ingen grupper å eksportere!", 2000);
+// Gjør funksjonen tilgjengelig globalt for main.js
+window.syncFromClassroomToGroups = syncFromClassroomToGroups;
+
+function syncFromGroupsToClassroom() {
+  const groupsList = document.getElementById('groupStudentList');
+  const classroomList = document.getElementById('studentList');
+  
+  if (groupsList && classroomList) {
+    classroomList.value = groupsList.value;
+    currentGroupStudents = getStudentsFromGroupTab();
+    
+    // Trigger samme localStorage oppdatering som klassekart-tab
+    saveToLocalStorage('currentStudentList', classroomList.value);
+  }
+}
+
+// Forhåndsvisningsfunksjon (viser kvadrater for hver gruppe - minimal)
+function updateGroupPreview() {
+  const students = getStudentsFromGroupTab();
+  const groupSize = parseInt(document.getElementById('groupSize').value) || 4;
+  const groupCount = parseInt(document.getElementById('groupCount').value) || 3;
+  
+  const previewContent = document.getElementById('group-preview-content');
+  if (!previewContent) return;
+  
+  if (students.length === 0) {
+    previewContent.innerHTML = '';
     return;
   }
   
-  let text = "🎯 Tilfeldige grupper\n";
-  text += "=" .repeat(30) + "\n\n";
+  // Beregn hvordan elevene vil bli fordelt
+  const studentsPerGroup = Math.floor(students.length / groupCount);
+  const extraStudents = students.length % groupCount;
   
-  generatedGroups.forEach((group, index) => {
-    text += `📍 Gruppe ${index + 1} (${group.length} elever):\n`;
-    group.forEach(student => {
-      text += `  • ${student}\n`;
-    });
-    text += "\n";
-  });
+  let html = `
+    <div class="group-preview-container">
+      <div class="group-preview-grid">
+  `;
   
-  text += `📊 Totalt: ${generatedGroups.length} grupper, ${currentGroupStudents.length} elever`;
-  
-  // Opprett og last ned fil
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `tilfeldige_grupper_${new Date().toISOString().split('T')[0]}.txt`;
-  link.click();
-  
-  utils.showNotification("📄 Grupper eksportert som tekstfil!", 2000);
-};
-
-// Kopier grupper til utklippstavle
-window.copyGroupsToClipboard = function() {
-  if (generatedGroups.length === 0) {
-    utils.showNotification("⚠️ Ingen grupper å kopiere!", 2000);
-    return;
+  // Lag kvadrater for hver gruppe
+  for (let i = 0; i < groupCount; i++) {
+    const studentsInThisGroup = studentsPerGroup + (i < extraStudents ? 1 : 0);
+    html += `
+      <div class="group-preview-item">
+        <div class="group-preview-square">${studentsInThisGroup}</div>
+      </div>
+    `;
   }
   
-  let text = "🎯 Tilfeldige grupper\n\n";
+  html += `
+      </div>
+    </div>
+  `;
   
-  generatedGroups.forEach((group, index) => {
-    text += `Gruppe ${index + 1}: ${group.join(', ')}\n`;
-  });
+  previewContent.innerHTML = html;
+}
+
+// Dropdown-funksjonalitet for grupper
+window.toggleGroupDropdown = function() {
+  const dropdown = document.getElementById('group-dropdown-options');
+  const isVisible = dropdown.style.display === 'block';
+  dropdown.style.display = isVisible ? 'none' : 'block';
   
-  navigator.clipboard.writeText(text).then(() => {
-    utils.showNotification("📋 Grupper kopiert til utklippstavle!", 2000);
-  }).catch(() => {
-    utils.showNotification("❌ Kunne ikke kopiere til utklippstavle", 2000);
-  });
+  if (!isVisible) {
+    loadGroupClassOptions();
+  }
 };
 
-// Initialiser når siden lastes
-document.addEventListener('DOMContentLoaded', () => {
-  // Sett opp event listeners og initialiser komponenter
-  console.log('Groups modul lastet');
+function loadGroupClassOptions() {
+  const dropdown = document.getElementById('group-dropdown-options');
+  const savedClasses = getFromLocalStorage('savedClasses') || {};
   
-  // Legg til event listener for elevliste-endringer
-  const groupStudentList = document.getElementById('groupStudentList');
-  if (groupStudentList) {
-    groupStudentList.addEventListener('input', () => {
-      // Oppdater currentGroupStudents når brukeren endrer listen
-      currentGroupStudents = groupStudentList.value.split('\n')
-        .map(name => name.trim())
-        .filter(name => name !== '');
-    });
+  dropdown.innerHTML = '';
+  
+  Object.keys(savedClasses).forEach(className => {
+    const option = document.createElement('li');
+    option.textContent = className;
+    option.onclick = () => selectGroupClass(className);
+    dropdown.appendChild(option);
+  });
+}
+
+function selectGroupClass(className) {
+  const savedClasses = getFromLocalStorage('savedClasses') || {};
+  const classData = savedClasses[className];
+  
+  if (classData) {
+    document.getElementById('groupStudentList').value = classData.students;
+    document.getElementById('group-dropdown-selected').textContent = `🧑‍🏫 ${className}`;
+    syncFromGroupsToClassroom();
+    updateGroupPreview();
+  }
+  
+  document.getElementById('group-dropdown-options').style.display = 'none';
+}
+
+// Lukk dropdown når man klikker utenfor
+document.addEventListener('click', function(e) {
+  const dropdown = document.getElementById('group-dropdown-options');
+  const dropdownBtn = document.getElementById('group-dropdown-selected');
+  
+  if (dropdown && dropdownBtn && 
+      !dropdown.contains(e.target) && 
+      !dropdownBtn.contains(e.target)) {
+    dropdown.style.display = 'none';
   }
 });
+
+function adjustGroupSize(change) {
+  const input = document.getElementById('groupSize');
+  let currentValue = parseInt(input.value);
+  let newValue = currentValue + change;
+  
+  // Begrens verdier
+  if (newValue < 2) newValue = 2;
+  if (newValue > 10) newValue = 10;
+  
+  input.value = newValue;
+  
+  // Oppdater automatisk antall grupper
+  updateGroupSizeFromInput();
+}
+
+function adjustGroupCount(delta) {
+  const input = document.getElementById('groupCount');
+  const currentValue = parseInt(input.value);
+  const newValue = Math.max(parseInt(input.min), Math.min(parseInt(input.max), currentValue + delta));
+  input.value = newValue;
+  updateGroupCountFromInput();
+}
+
+function updateGroupSizeFromInput() {
+  const groupSize = parseInt(document.getElementById('groupSize').value);
+  const studentCount = getStudentsFromGroupTab().length;
+  
+  if (studentCount > 0) {
+    const maxGroups = Math.floor(studentCount / groupSize);
+    const groupCountInput = document.getElementById('groupCount');
+    
+    // Oppdater antall grupper basert på størrelse
+    if (maxGroups > 0) {
+      groupCountInput.value = maxGroups;
+    }
+  }
+  
+  // Oppdater forhåndsvisningen
+  updateGroupPreview();
+}
+
+function updateGroupCountFromInput() {
+  const groupCount = parseInt(document.getElementById('groupCount').value);
+  const studentCount = getStudentsFromGroupTab().length;
+  
+  if (studentCount > 0) {
+    const maxGroupSize = Math.floor(studentCount / groupCount);
+    const groupSizeInput = document.getElementById('groupSize');
+    
+    // Oppdater gruppestørrelse basert på antall grupper
+    if (maxGroupSize > 0) {
+      groupSizeInput.value = Math.max(2, maxGroupSize);
+    }
+  }
+  
+  // Oppdater forhåndsvisningen
+  updateGroupPreview();
+}
+
+function toggleGroupDropdown() {
+  const dropdown = document.getElementById('group-dropdown-options');
+  const isVisible = dropdown.style.display === 'block';
+  dropdown.style.display = isVisible ? 'none' : 'block';
+  
+  if (!isVisible) {
+    loadGroupClassOptions();
+  }
+}
+
+// Eksporter alle nødvendige funksjoner til global scope for HTML onclick handlers
+window.generateRandomGroups = generateRandomGroups;
+window.adjustGroupSize = adjustGroupSize;
+window.adjustGroupCount = adjustGroupCount;
+window.updateGroupSizeFromInput = updateGroupSizeFromInput;
+window.updateGroupCountFromInput = updateGroupCountFromInput;
+window.toggleGroupDropdown = toggleGroupDropdown;
