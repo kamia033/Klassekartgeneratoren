@@ -146,7 +146,7 @@ function createGroups(students, groupSize, groupCount, keepExtraStudentsSeparate
   // Håndter eventuelle gjenværende elever
   if (keepExtraStudentsSeparate && currentIndex < shuffledStudents.length) {
     const extraGroup = {
-      name: 'Ekstra elever',
+      name: `Gruppe ${groups.length + 1}`,
       students: shuffledStudents.slice(currentIndex)
     };
     groups.push(extraGroup);

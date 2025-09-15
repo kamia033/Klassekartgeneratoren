@@ -790,13 +790,10 @@ button[id*="btn"].active-tab {
   box-sizing: border-box;
   overflow-y: auto;
   z-index: 1;
-}
-
-#groups-visual-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px;
+  align-content: start;
 }
 
 .groups-header {
@@ -1204,15 +1201,7 @@ button[id*="btn"].active-tab {
   display: none;
 }
 
-/* Gruppekort styling - tre kort i bredden */
-#groups-visual-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 20px 0;
-  max-width: 100%;
-}
-
+/* Gruppekort styling */
 .group-card {
   background: #ffffff;
   border-radius: 12px;
