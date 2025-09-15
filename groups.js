@@ -410,9 +410,19 @@ window.toggleGroupDropdown = function() {
 
 function loadGroupClassOptions() {
   const dropdown = document.getElementById('group-dropdown-options');
-  const savedClasses = getFromLocalStorage('savedClasses') || {};
+  const savedClasses = JSON.parse(localStorage.getItem("classes")) || {};
   
   dropdown.innerHTML = '';
+  
+  // Hvis ingen klasser eksisterer, legg til en hjelpetekst
+  if (Object.keys(savedClasses).length === 0) {
+    const noClassesOption = document.createElement('li');
+    noClassesOption.textContent = 'Ingen klasser funnet - lag en klasse først på Klassekart-fanen';
+    noClassesOption.style.color = '#6c757d';
+    noClassesOption.style.fontStyle = 'italic';
+    dropdown.appendChild(noClassesOption);
+    return;
+  }
   
   Object.keys(savedClasses).forEach(className => {
     const option = document.createElement('li');
@@ -423,11 +433,11 @@ function loadGroupClassOptions() {
 }
 
 function selectGroupClass(className) {
-  const savedClasses = getFromLocalStorage('savedClasses') || {};
+  const savedClasses = JSON.parse(localStorage.getItem("classes")) || {};
   const classData = savedClasses[className];
   
-  if (classData) {
-    document.getElementById('groupStudentList').value = classData.students;
+  if (classData && classData.studentList) {
+    document.getElementById('groupStudentList').value = classData.studentList;
     document.getElementById('group-dropdown-selected').textContent = `🧑‍🏫 ${className}`;
     syncFromGroupsToClassroom();
     updateGroupPreview();

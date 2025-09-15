@@ -850,7 +850,6 @@ button[id*="btn"].active-tab {
   font-family: 'Inter', sans-serif;
 }
 
-/* Removed hover effect and purple line */
 
 .visual-group-header {
   display: flex;
@@ -878,15 +877,11 @@ button[id*="btn"].active-tab {
 .visual-group-members {
   padding: 12px;
   font-size: 12px;
-  color: #495057;
+  color: #303030;
   line-height: 1.4;
 }
 
-.group-member::before {
-  content: '👤';
-  margin-right: 8px;
-  font-size: 12px;
-}
+
 
 /* Gruppe forhåndsvisning */
 #group-preview-content {
@@ -1205,17 +1200,13 @@ button[id*="btn"].active-tab {
 .group-card {
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 20px;
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
   font-family: 'Inter', sans-serif;
 }
 
-.group-card:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
+
 
 .group-card h3 {
   font-family: 'Inter', sans-serif;
@@ -1229,6 +1220,7 @@ button[id*="btn"].active-tab {
 }
 
 .group-card ul {
+  text-align: center;;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -1236,11 +1228,10 @@ button[id*="btn"].active-tab {
 
 .group-card li {
   font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  font-size: 15px;
+  font-weight: 500;
+  font-size: 1.2rem;
   padding: 8px 0;
-  color: #495057;
-  border-bottom: 1px solid #f8f9fa;
+  color: #252525;
   transition: color 0.2s ease;
 }
 
