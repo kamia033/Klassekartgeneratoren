@@ -1,3 +1,6 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Ny moderne fargepalett og typografi */
 
 /* Fargervariabler */
@@ -15,7 +18,7 @@
 
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   background-color: #f7f9fc;
   color: #333;
@@ -1152,13 +1155,12 @@ button[id*="btn"].active-tab {
   animation-fill-mode: both;
 }
 
-/* Gruppe forhåndsvisning - minimal versjon */
+/* Gruppe forhåndsvisning - ingen boks */
 .group-preview-container {
-  margin: 10px 0;
-  padding: 10px;
-  background: transparent;
+  margin: 0;
+  padding: 0;
+  background: none;
   border: none;
-  border-radius: 0;
 }
 
 .group-preview-title {
@@ -1200,4 +1202,88 @@ button[id*="btn"].active-tab {
 
 .group-preview-empty {
   display: none;
+}
+
+/* Gruppekort styling - tre kort i bredden */
+#groups-visual-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px 0;
+  max-width: 100%;
+}
+
+.group-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.group-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.group-card h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  color: #212529;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.group-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.group-card li {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 8px 0;
+  color: #495057;
+  border-bottom: 1px solid #f8f9fa;
+  transition: color 0.2s ease;
+}
+
+.group-card li:last-child {
+  border-bottom: none;
+}
+
+.group-card li.group-leader {
+  font-weight: 600;
+  color: #7359f7;
+  background: linear-gradient(90deg, rgba(115, 89, 247, 0.1) 0%, rgba(115, 89, 247, 0.05) 100%);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 4px 0;
+  border: none;
+}
+
+/* Responsiv design for mindre skjermer */
+@media (max-width: 768px) {
+  #groups-visual-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  #groups-visual-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .group-card {
+    padding: 16px;
+  }
 }

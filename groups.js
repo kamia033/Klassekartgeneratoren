@@ -31,6 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Legg til event listener for "hold ekstra elever separat" checkbox
+  const keepExtraStudentsSeparate = document.getElementById('keepExtraStudentsSeparate');
+  if (keepExtraStudentsSeparate) {
+    keepExtraStudentsSeparate.addEventListener('change', function() {
+      updateGroupPreview();
+    });
+  }
+  
   // Vis initial forhåndsvisning
   updateGroupPreview();
 });
@@ -341,6 +349,7 @@ function updateGroupPreview() {
   const students = getStudentsFromGroupTab();
   const groupSize = parseInt(document.getElementById('groupSize').value) || 4;
   const groupCount = parseInt(document.getElementById('groupCount').value) || 3;
+  const keepExtraStudentsSeparate = document.getElementById('keepExtraStudentsSeparate')?.checked || false;
   
   const previewContent = document.getElementById('group-preview-content');
   if (!previewContent) return;
@@ -354,14 +363,19 @@ function updateGroupPreview() {
   const studentsPerGroup = Math.floor(students.length / groupCount);
   const extraStudents = students.length % groupCount;
   
-  let html = `
-    <div class="group-preview-container">
-      <div class="group-preview-grid">
-  `;
+  let html = `<div class="group-preview-grid">`;
   
-  // Lag kvadrater for hver gruppe
+  // Lag kvadrater for hver hovedgruppe
   for (let i = 0; i < groupCount; i++) {
-    const studentsInThisGroup = studentsPerGroup + (i < extraStudents ? 1 : 0);
+    let studentsInThisGroup;
+    if (keepExtraStudentsSeparate) {
+      // Hvis ekstra elever holdes separat, får alle hovedgrupper samme antall
+      studentsInThisGroup = studentsPerGroup;
+    } else {
+      // Hvis ekstra elever fordeles, får noen grupper en ekstra elev
+      studentsInThisGroup = studentsPerGroup + (i < extraStudents ? 1 : 0);
+    }
+    
     html += `
       <div class="group-preview-item">
         <div class="group-preview-square">${studentsInThisGroup}</div>
@@ -369,10 +383,16 @@ function updateGroupPreview() {
     `;
   }
   
-  html += `
+  // Legg til ekstra gruppe hvis nødvendig
+  if (keepExtraStudentsSeparate && extraStudents > 0) {
+    html += `
+      <div class="group-preview-item">
+        <div class="group-preview-square">${extraStudents}</div>
       </div>
-    </div>
-  `;
+    `;
+  }
+  
+  html += `</div>`;
   
   previewContent.innerHTML = html;
 }
