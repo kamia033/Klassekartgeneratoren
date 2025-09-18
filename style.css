@@ -17,15 +17,12 @@
 
 
 
-body {
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  background-color: #f7f9fc;
-  color: #333;
-}
+
+/* Fargevariabler og fargepalett er flyttet til style_color.css */
 
 .container {
   max-width: 1200px;
+  min-width: 1200px;
   margin: 20px auto;
   padding: 0 20px;
   display: flex;
@@ -89,12 +86,21 @@ canvas {
   max-height: 93.3vh;
   gap: 10px;
   width: 20%;
+  max-width: 20%;
+  min-width: 20%;
   height: 93.3vh;
   overflow-y: auto;
   position: relative;
   z-index: 5;
 }
 
+#mode-selector {
+  display: flex;
+  gap: 10px;
+  
+  align-items: center;
+  margin: 10px;
+}
 
 .save-section button {
   margin-top: 5px;
@@ -170,6 +176,14 @@ input[type="text"] {
 
 .dropdown {
   margin: 10px 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: #121212;
+  border-radius: 8px;
+  text-align: center;
+  padding:10px;
+  position: relative;
+  cursor: pointer;
 }
 
 /* Fargeknapper (sirkler) – ligner Miro */
@@ -185,6 +199,8 @@ input[type="text"] {
   border-radius: 50%;
   margin: 2px;
 }
+
+
 
 /* Standard kontekstmeny */
 #contextMenu,
@@ -273,71 +289,8 @@ ul {
 #assignmentWarning {
   display: none;
   color: red;
-  font-weight: bold;
-  margin-top: 10px;
-}
 
-/* Footer */
-footer {
-  position: absolute;
-  text-align: center;
-  margin-top: 20px;
-  padding-top: 10px;
-  border-top: 1px solid #ccc;
-  font-size: 14px;
-  color: #777;
-}
-
-
-
-/* Grunnstil for dropdown-container */
-.dropdown {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 2;
-  height: 50px;
-  transition: all 200ms linear;
-  border-radius: 4px;
-  width: 100%;
-  letter-spacing: 1px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border: none;
- 
-  cursor: pointer;
-
-  position: relative;
-
-
-  
-  background-color: #ffffff;
-  color: black;
-  border: 3px solid #121212;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 600;
-  line-height: 1;
-
-  transition: all 200ms linear;
-  
-  width: 100%;
-  letter-spacing: 1px;
-}
-
-/* Stil for den valgte dropdown-verdien */
-.dropdown-selected {
-  padding: 20px 20px;
-  width: 100%;
-  background-color: transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  text-align: center;
+/* Kontekstmeny-stiler er flyttet til style_contextmenu.css */
   font-weight: 600;
   color: black;
   transition: all 0.3s ease;
@@ -529,30 +482,11 @@ footer {
   margin-bottom: 10px;
 }
 
-/* Enkle tab-knapper styling */
-button[id*="btn"] {
-  padding: 10px 16px;
-  border: 2px solid var(--accent);
-  border-radius: 8px;
-  background-color: var(--font_light);
-  color: var(--font);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-}
 
-button[id*="btn"]:hover {
-  background-color: var(--accent);
-  color: white;
-  transform: translateY(-1px);
-}
 
-button[id*="btn"].active-tab {
-  background-color: var(--accent);
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
+
+
+
 
 
 #fullscreen-button {
@@ -695,575 +629,6 @@ button[id*="btn"].active-tab {
 .tab-content.active {
   display: flex;
   width: 100%;
+  max-width: 300px;
   flex: 1;
-}
-
-/* Gruppestørrelse kontroller */
-.group-size-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.group-size-controls label {
-  font-weight: 500;
-  color: #333;
-}
-
-.group-size-controls input {
-  width: 60px;
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.group-size-buttons {
-  display: flex;
-  gap: 2px;
-}
-
-.group-size-buttons button {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 16px;
-  background-color: #f8f9fa;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  color: #333;
-}
-
-.group-size-buttons button:hover {
-  background-color: #e9ecef;
-}
-
-/* Gruppe-display */
-.group-item {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-
-.group-header {
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-.group-members {
-  color: #666;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.export-group-buttons {
-  display: flex;
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.export-group-buttons button {
-  flex: 1;
-  font-size: 12px;
-  padding: 8px 10px;
-}
-
-/* Visuell gruppevisning på venstre side */
-#groups-visual-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #f7f9fc;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  z-index: 1;
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 20px;
-  align-content: start;
-}
-
-.groups-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 3px solid var(--accent);
-}
-
-.groups-header h2 {
-  margin: 0;
-  color: var(--accent);
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.groups-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.group-action-btn {
-  padding: 8px 16px;
-  background-color: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.group-action-btn:hover {
-  background-color: var(--accent_hover);
-}
-
-#groups-visual-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.visual-group-item {
-  background: white;
-  border: 2px solid var(--group-color, #e1e5e9);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: none;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-}
-
-
-.visual-group-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.group-number {
-  background-color: var(--accent);
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  margin-right: 12px;
-}
-
-.visual-group-members {
-  padding: 12px;
-  font-size: 12px;
-  color: #303030;
-  line-height: 1.4;
-}
-
-
-
-/* Gruppe forhåndsvisning */
-#group-preview-content {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 10px;
-  font-size: 13px;
-  color: #495057;
-}
-
-.preview-warning {
-  color: #dc3545;
-  font-weight: 500;
-}
-
-.preview-info {
-  color: #28a745;
-  font-weight: 500;
-}
-
-/* Nye stiler for horisontale gruppekontroller */
-.group-controls-horizontal {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.group-control-item {
-  flex: 1;
-}
-
-.group-control-item label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #333;
-}
-
-.group-size-controls,
-.group-count-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.group-size-controls input,
-.group-count-controls input {
-  width: 60px;
-  padding: 6px 8px;
-  border: 2px solid #e1e5e9;
-  border-radius: 6px;
-  font-size: 14px;
-  text-align: center;
-  appearance: textfield; /* Standard */
-  -moz-appearance: textfield; /* Firefox */
-}
-
-/* Fjern spinner-piler i Chrome, Safari, Edge */
-.group-size-controls input::-webkit-outer-spin-button,
-.group-size-controls input::-webkit-inner-spin-button,
-.group-count-controls input::-webkit-outer-spin-button,
-.group-count-controls input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.group-size-buttons,
-.group-count-buttons {
-  display: flex;
-  gap: 4px;
-}
-
-.group-size-buttons button,
-.group-count-buttons button {
-  width: 28px;
-  height: 28px;
-  background-color: #ffffff;
-  color: black;
-  border: 3px solid #121212;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Roboto', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.group-size-buttons button:hover,
-.group-count-buttons button:hover {
-  background-color: #dbdbdb;
-}
-
-.group-options {
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px solid #e1e5e9;
-}
-
-.group-options label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: normal;
-  cursor: pointer;
-}
-
-.group-options input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-/* Stiler for forhåndsvisning */
-.preview-summary {
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.preview-method {
-  color: #666;
-  margin-bottom: 10px;
-  font-size: 13px;
-}
-
-.group-preview-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.preview-group-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background-color: #4a90e2;
-  color: white;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-.preview-group-badge.extra {
-  background-color: #f5a623;
-}
-
-/* Oppdatert kompakt visning uten drop shadow og hover */
-.visual-group-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: white;
-  border: 2px solid var(--group-color, #e1e5e9);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: none;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-}
-
-.visual-group-header {
-  padding: 12px;
-  color: white;
-  font-weight: 500;
-  font-size: 20px;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-}
-
-.visual-group-members {
-  padding: 12px;
-  line-height: 1.4;
-  font-size: 1.1rem;
-  color: #1b1b1b;
-  font-family: 'Inter', sans-serif;
-}
-
-.group-member-name {
-  padding: 4px 0;
-  font-family: 'Inter', sans-serif;
-}
-
-.group-member-name:last-child {
-  border-bottom: none;
-}
-
-.group-leader {
-  font-weight: bold;
-  font-family: 'Inter', sans-serif;
-}
-
-/* Animasjoner for gruppegenerering */
-@keyframes slideInFromLeft {
-  0% {
-    transform: translateX(-200px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInFromRight {
-  0% {
-    transform: translateX(200px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInFromTop {
-  0% {
-    transform: translateY(-200px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInFromBottom {
-  0% {
-    transform: translateY(200px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeInScale {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animated-card {
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  animation-fill-mode: both;
-}
-
-.animated-member {
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  animation-fill-mode: both;
-}
-
-/* Gruppe forhåndsvisning - ingen boks */
-.group-preview-container {
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: none;
-}
-
-.group-preview-title {
-  display: none;
-}
-
-.group-preview-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-}
-
-.group-preview-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.group-preview-square {
-  width: 28px;
-  height: 28px;
-  background: #6c757d;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 500;
-  font-size: 12px;
-  box-shadow: none;
-  transition: none;
-}
-
-.group-preview-label {
-  display: none;
-}
-
-.group-preview-empty {
-  display: none;
-}
-
-/* Gruppekort styling */
-.group-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-}
-
-
-
-.group-card h3 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 18px;
-  margin: 0 0 16px 0;
-  color: #212529;
-  text-align: center;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f8f9fa;
-}
-
-.group-card ul {
-  text-align: center;;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.group-card li {
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 1.2rem;
-  padding: 8px 0;
-  color: #252525;
-  transition: color 0.2s ease;
-}
-
-.group-card li:last-child {
-  border-bottom: none;
-}
-
-.group-card li.group-leader {
-  font-weight: 600;
-  color: #7359f7;
-  background: linear-gradient(90deg, rgba(115, 89, 247, 0.1) 0%, rgba(115, 89, 247, 0.05) 100%);
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin: 4px 0;
-  border: none;
-}
-
-/* Responsiv design for mindre skjermer */
-@media (max-width: 768px) {
-  #groups-visual-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  #groups-visual-container {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .group-card {
-    padding: 16px;
-  }
 }

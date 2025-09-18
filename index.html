@@ -8,8 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="style.css">
+  
   <link rel="stylesheet" type="text/css" href="style_color.css">
+
+  <!-- Oppdelt CSS -->
+  <link rel="stylesheet" type="text/css" href="style_base.css">
+  <link rel="stylesheet" type="text/css" href="style_groups.css">
+  <link rel="stylesheet" type="text/css" href="style_contextmenu.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
@@ -51,9 +57,9 @@
       <!-- Klassekart Tab -->
       <div id="klassekart-tab" class="tab-content active">
         <div class="tab-navigation">
-          <div class="save-section" style="display: flex; gap: 4px;">
+          <div id="mode-selector" >
             <button id="klassekart-btn" onclick="switchTab('klassekart')" class="active-tab">📍 Klassekart</button>
-            <button id="grupper-btn" onclick="switchTab('grupper')">👥 Grupper</button>
+            <button id="grupper-btn" onclick="switchTab('grupper')">🧑‍🤝‍🧑 Grupper (beta)</button>
           </div>
         </div>
         <div id="mode-slider" class="save-section">
@@ -63,6 +69,7 @@
           </button>
         </div>
       <div class="save-section">
+         
         <div class="dropdown">
           <div class="dropdown-selected" onclick="toggleDropdown()">🧑‍🏫 Velg klasse</div>
           <ul class="dropdown-options">
@@ -173,39 +180,35 @@
         </div>
       </div>
       
-      <div style="background-color: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-        <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">👥 Elevliste</p>
+       
         <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="margin: 0; width: calc(100% - 20px);"></textarea>
-      </div>
+      
 
       <div class="save-section">
-        <div class="group-settings-container" style="background-color: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+        
           <p style="margin: 0 0 8px 0; font-weight: 500; color: #333;">⚙️ Gruppeinnstillinger</p>
           
           <!-- Generer grupper knapp øverst -->
-          <button onclick="generateRandomGroups()" style="width: 100%; margin-bottom: 15px;">🎲 Generer tilfeldige grupper</button>
+          <button id="generateGroupsButton" onclick="generateRandomGroups()" >🎲 Generer grupper</button>
           
           <!-- Horisontale kontroller -->
           <div class="group-controls-horizontal">
             <div class="group-control-item">
               <label>Gruppestørrelse:</label>
               <div class="group-size-controls">
+                <button class="adjust-button" onclick="adjustGroupSize(1)">+</button>
                 <input type="number" id="groupSize" min="2" max="10" value="4" oninput="updateGroupSizeFromInput()">
-                <div class="group-size-buttons">
-                  <button onclick="adjustGroupSize(-1)">-</button>
-                  <button onclick="adjustGroupSize(1)">+</button>
-                </div>
+                <button class="adjust-button" onclick="adjustGroupSize(-1)">-</button>
               </div>
             </div>
             
             <div class="group-control-item">
               <label>Antall grupper:</label>
               <div class="group-count-controls">
+                <button class="adjust-button" onclick="adjustGroupCount(1)">+</button>
                 <input type="number" id="groupCount" min="2" max="15" value="3" oninput="updateGroupCountFromInput()">
-                <div class="group-count-buttons">
-                  <button onclick="adjustGroupCount(-1)">-</button>
-                  <button onclick="adjustGroupCount(1)">+</button>
-                </div>
+                <button class="adjust-button"onclick="adjustGroupCount(-1)">-</button>
+                
               </div>
             </div>
           </div>
@@ -225,7 +228,7 @@
               ✨ Vis animasjon
             </label>
           </div>
-        </div>
+        
         
       </div>
     </div>

@@ -228,10 +228,11 @@ function displayGroups() {
     const studentsList = document.createElement('ul');
     group.students.forEach(student => {
       const studentItem = document.createElement('li');
-      studentItem.textContent = student;
       if (group.leader === student) {
         studentItem.classList.add('group-leader');
-        studentItem.textContent += ' 👑';
+        studentItem.textContent = student + ' 👑';
+      } else {
+        studentItem.textContent = student;
       }
       studentsList.appendChild(studentItem);
     });
@@ -273,10 +274,11 @@ function displayGroupsWithAnimation() {
     const studentsList = document.createElement('ul');
     group.students.forEach(student => {
       const studentItem = document.createElement('li');
-      studentItem.textContent = student;
       if (group.leader === student) {
         studentItem.classList.add('group-leader');
-        studentItem.textContent += ' 👑';
+        studentItem.textContent = student + ' 👑';
+      } else {
+        studentItem.textContent = student;
       }
       studentsList.appendChild(studentItem);
     });
