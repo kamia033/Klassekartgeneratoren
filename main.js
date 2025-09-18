@@ -39,13 +39,17 @@ window.switchTab = function(tabName) {
     if (canvasControls) canvasControls.style.display = 'none';
     if (fullscreenBtn) fullscreenBtn.style.display = 'none';
     if (groupsContainer) {
-      groupsContainer.style.display = 'block';
+      groupsContainer.classList.add('show');
+      groupsContainer.style.display = 'grid';
     }
   } else {
     if (canvas) canvas.style.display = 'block';
     if (canvasControls) canvasControls.style.display = 'flex';
     if (fullscreenBtn) fullscreenBtn.style.display = 'block';
-    if (groupsContainer) groupsContainer.style.display = 'none';
+    if (groupsContainer) {
+      groupsContainer.classList.remove('show');
+      groupsContainer.style.display = 'none';
+    }
   }
 };
 

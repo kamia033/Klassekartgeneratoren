@@ -102,11 +102,22 @@
   padding: 20px;
   box-sizing: border-box;
   overflow-y: auto;
-  z-index: 1;
+  z-index: 10;
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 20px;
   align-content: start;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Når grupper-containeren vises */
+#groups-visual-container.show {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .groups-header {
