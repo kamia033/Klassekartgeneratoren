@@ -424,68 +424,88 @@
 /* Animasjoner for gruppegenerering */
 @keyframes slideInFromLeft {
   0% {
-    transform: translateX(-200px);
+    transform: translateX(-300px) rotate(-15deg) scale(0.8);
     opacity: 0;
   }
+  50% {
+    transform: translateX(20px) rotate(2deg) scale(1.05);
+    opacity: 0.8;
+  }
   100% {
-    transform: translateX(0);
+    transform: translateX(0) rotate(0deg) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes slideInFromRight {
   0% {
-    transform: translateX(200px);
+    transform: translateX(300px) rotate(15deg) scale(0.8);
     opacity: 0;
   }
+  50% {
+    transform: translateX(-20px) rotate(-2deg) scale(1.05);
+    opacity: 0.8;
+  }
   100% {
-    transform: translateX(0);
+    transform: translateX(0) rotate(0deg) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes slideInFromTop {
   0% {
-    transform: translateY(-200px);
+    transform: translateY(-200px) scale(0.9);
     opacity: 0;
   }
+  60% {
+    transform: translateY(15px) scale(1.05);
+    opacity: 0.9;
+  }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes slideInFromBottom {
   0% {
-    transform: translateY(200px);
+    transform: translateY(200px) scale(0.9);
     opacity: 0;
   }
+  60% {
+    transform: translateY(-15px) scale(1.05);
+    opacity: 0.9;
+  }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes fadeInScale {
   0% {
-    transform: scale(0.8);
+    transform: scale(0.5) rotate(-5deg);
     opacity: 0;
   }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 0.7;
+  }
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
     opacity: 1;
   }
 }
 
 .animated-card {
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 1.2s;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   animation-fill-mode: both;
 }
 
 .animated-member {
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   animation-fill-mode: both;
 }
 
@@ -625,6 +645,68 @@
   
   .group-card {
     padding: 16px;
+  }
+}
+
+/* Extra crazy animasjoner */
+@keyframes crazyBounce {
+  0% {
+    transform: scale(0) rotate(0deg) translateY(-1000px);
+    opacity: 0;
+    filter: blur(50px) hue-rotate(0deg);
+  }
+  25% {
+    transform: scale(1.5) rotate(90deg) translateY(100px);
+    opacity: 0.5;
+    filter: blur(10px) hue-rotate(90deg);
+  }
+  50% {
+    transform: scale(0.7) rotate(180deg) translateY(-50px);
+    opacity: 0.8;
+    filter: blur(5px) hue-rotate(180deg);
+  }
+  75% {
+    transform: scale(1.2) rotate(270deg) translateY(25px);
+    opacity: 1;
+    filter: blur(2px) hue-rotate(270deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg) translateY(0);
+    opacity: 1;
+    filter: blur(0px) hue-rotate(360deg);
+  }
+}
+
+@keyframes wildSpin {
+  0% {
+    transform: rotate3d(1, 1, 1, 0deg) scale(0.1) translateZ(-500px);
+    opacity: 0;
+    filter: saturate(0) brightness(0);
+  }
+  20% {
+    transform: rotate3d(1, 1, 1, 144deg) scale(2.5) translateZ(-200px);
+    opacity: 0.3;
+    filter: saturate(3) brightness(2);
+  }
+  40% {
+    transform: rotate3d(1, 1, 1, 288deg) scale(0.3) translateZ(200px);
+    opacity: 0.7;
+    filter: saturate(2) brightness(1.5);
+  }
+  60% {
+    transform: rotate3d(1, 1, 1, 432deg) scale(1.8) translateZ(-100px);
+    opacity: 0.9;
+    filter: saturate(1.5) brightness(1.2);
+  }
+  80% {
+    transform: rotate3d(1, 1, 1, 576deg) scale(0.8) translateZ(50px);
+    opacity: 1;
+    filter: saturate(1.2) brightness(1.1);
+  }
+  100% {
+    transform: rotate3d(1, 1, 1, 720deg) scale(1) translateZ(0px);
+    opacity: 1;
+    filter: saturate(1) brightness(1);
   }
 }
 

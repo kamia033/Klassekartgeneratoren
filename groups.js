@@ -262,23 +262,41 @@ function displayGroupsWithAnimation() {
   
   let currentGroupIndex = 0;
   
+  // Array av moderate animasjoner (fjernet de mest intensive)
+  const animations = [
+    'slideInFromLeft', 
+    'slideInFromRight', 
+    'slideInFromTop', 
+    'slideInFromBottom', 
+    'fadeInScale'
+  ];
+  
   function animateNextGroup() {
     if (currentGroupIndex >= generatedGroups.length) return;
     
     const group = generatedGroups[currentGroupIndex];
     const groupCard = document.createElement('div');
-    groupCard.className = 'group-card';
+    groupCard.className = 'group-card animated-card';
     groupCard.style.backgroundColor = getUniqueGroupColor(currentGroupIndex);
-    groupCard.style.opacity = '0';
-    groupCard.style.transform = 'scale(0.8)';
+    
+    // Velg en tilfeldig animasjon
+    const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
+    groupCard.style.animationName = randomAnimation;
     
     const groupTitle = document.createElement('h3');
     groupTitle.textContent = group.name;
     groupCard.appendChild(groupTitle);
     
     const studentsList = document.createElement('ul');
-    group.students.forEach(student => {
+    group.students.forEach((student, studentIndex) => {
       const studentItem = document.createElement('li');
+      studentItem.className = 'animated-member';
+      
+      // Gi hver student en tilfeldig animasjon med delay
+      const randomStudentAnimation = animations[Math.floor(Math.random() * animations.length)];
+      studentItem.style.animationName = randomStudentAnimation;
+      studentItem.style.animationDelay = `${studentIndex * 0.1}s`;
+      
       if (group.leader === student) {
         studentItem.classList.add('group-leader');
         studentItem.textContent = student + ' 👑';
@@ -291,15 +309,8 @@ function displayGroupsWithAnimation() {
     groupCard.appendChild(studentsList);
     visualContainer.appendChild(groupCard);
     
-    // Animer inn
-    setTimeout(() => {
-      groupCard.style.transition = 'all 0.3s ease';
-      groupCard.style.opacity = '1';
-      groupCard.style.transform = 'scale(1)';
-    }, 10);
-    
     currentGroupIndex++;
-    setTimeout(animateNextGroup, 200);
+    setTimeout(animateNextGroup, 400); // Redusert delay
   }
   
   animateNextGroup();
