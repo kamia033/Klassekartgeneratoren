@@ -808,7 +808,10 @@ class ClassroomGrid {
     });
     this.roundtables.forEach(table => {
       for (let i = 0; i < table.numSeats; i++) {
-        available.push({ type: "roundtable", table: table, seat: i });
+        // Kun legg til setet hvis det ikke er markert
+        if (!table.markedSeats[i]) {
+          available.push({ type: "roundtable", table: table, seat: i });
+        }
       }
     });
     available.sort(() => Math.random() - 0.5);
@@ -823,8 +826,36 @@ class ClassroomGrid {
       }
     }
     let totalSeats = this.desks.length + this.roundtables.reduce((sum, table) => sum + table.numSeats, 0);
+    let availableSeats = available.length; // Antall tilgjengelige plasser (ikke-markerte)
     const warnElem = document.getElementById("assignmentWarning");
-    warnElem.style.display = studentNames.length > totalSeats ? "block" : "none";
+    
+    // Vis advarsel hvis det er flere studenter enn tilgjengelige plasser
+    if (studentNames.length > availableSeats) {
+      warnElem.style.display = "block";
+      const unassignedCount = studentNames.length - availableSeats;
+      const markedDesks = this.desks.filter(desk => desk.marked).length;
+      const markedRoundtableSeats = this.roundtables.reduce((sum, table) => 
+        sum + table.markedSeats.filter(marked => marked).length, 0);
+      const totalMarkedSeats = markedDesks + markedRoundtableSeats;
+      
+      if (totalMarkedSeats > 0) {
+        let message = `⚠️ ${unassignedCount} elev(er) fikk ikke plass! (`;
+        if (markedDesks > 0) {
+          message += `${markedDesks} pult(er)`;
+        }
+        if (markedRoundtableSeats > 0) {
+          if (markedDesks > 0) message += " og ";
+          message += `${markedRoundtableSeats} rundbordsete(r)`;
+        }
+        message += " er markert som utilgjengelig)";
+        warnElem.textContent = message;
+      } else {
+        warnElem.textContent = `⚠️ ${unassignedCount} elev(er) fikk ikke plass!`;
+      }
+    } else {
+      warnElem.style.display = "none";
+    }
+    
     unsavedChanges = true;
     this.draw();
   }
