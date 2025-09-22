@@ -5,7 +5,6 @@ import * as contextMenu from './contextMenu.js';
 
 // Global switchTab function for tab navigation
 window.switchTab = function(tabName) {
-  console.log('switchTab called with:', tabName);
   // Fjern active-klasse fra alle tabs og knapper
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
   

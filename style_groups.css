@@ -179,7 +179,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 15px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent);
 }
@@ -200,9 +200,9 @@
 
 .visual-group-members {
   padding: 12px;
-  font-size: 12px;
+  font-size: 11px;
   color: #303030;
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 
@@ -394,7 +394,7 @@
   padding: 12px;
   color: white;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   text-align: center;
   font-family: 'Inter', sans-serif;
 }
@@ -543,7 +543,9 @@
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   transition: all 0.3s ease;
   font-family: 'Inter', sans-serif;
 }
@@ -556,32 +558,41 @@
 .group-card h3 {
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 18px;
+  font-size: 14px;
   margin: 0 0 16px 0;
   color: #1c1c1c;
-background-color: #1c1c1c;
+  background-color: #1c1c1c;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #383838;
+  padding-bottom: 0px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .group-card ul {
-  text-align: center;;
+  text-align: center;
+
   list-style: none;
-  padding: 0;
   margin: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .group-card li {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
-  font-size: 1.1rem;
-  padding: 8px 0;
+  font-size: 1.0rem;
+  padding: 4px 0;
   color: #252525;
   transition: color 0.2s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .group-card li:last-child {
