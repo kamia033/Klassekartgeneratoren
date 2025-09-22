@@ -198,11 +198,16 @@ window.generateRandomGroups = generateRandomGroups;
 
 // Funksjon for å hente elever fra grupper-tab
 function getStudentsFromGroupTab() {
-  const studentList = document.getElementById('groupStudentList').value;
-  return studentList
-    .split('\n')
-    .map(name => name.trim())
-    .filter(name => name.length > 0);
+  // Use checkbox system if available, otherwise fall back to textarea
+  if (window.getCheckedStudents) {
+    return window.getCheckedStudents('groupStudentList', 'groupStudentCheckboxList');
+  } else {
+    const studentList = document.getElementById('groupStudentList').value;
+    return studentList
+      .split('\n')
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+  }
 }
 
 // Vis gruppene uten animasjon
@@ -327,6 +332,11 @@ function syncFromClassroomToGroups() {
   if (classroomList && groupsList) {
     groupsList.value = classroomList.value;
     currentGroupStudents = getStudentsFromGroupTab();
+    
+    // Update checkbox lists if available
+    if (window.updateCheckboxListFromTextarea) {
+      window.updateCheckboxListFromTextarea('groupStudentList', 'groupStudentCheckboxList');
+    }
   }
 }
 
@@ -340,6 +350,11 @@ function syncFromGroupsToClassroom() {
   if (groupsList && classroomList) {
     classroomList.value = groupsList.value;
     currentGroupStudents = getStudentsFromGroupTab();
+    
+    // Update checkbox lists if available
+    if (window.updateCheckboxListFromTextarea) {
+      window.updateCheckboxListFromTextarea('studentList', 'studentCheckboxList');
+    }
     
     // Trigger samme localStorage oppdatering som klassekart-tab
     saveToLocalStorage('currentStudentList', classroomList.value);
@@ -441,6 +456,12 @@ function selectGroupClass(className) {
   if (classData && classData.studentList) {
     document.getElementById('groupStudentList').value = classData.studentList;
     document.getElementById('group-dropdown-selected').textContent = `🧑‍🏫 ${className}`;
+    
+    // Update checkbox lists if available
+    if (window.updateCheckboxListFromTextarea) {
+      window.updateCheckboxListFromTextarea('groupStudentList', 'groupStudentCheckboxList');
+    }
+    
     syncFromGroupsToClassroom();
     updateGroupPreview();
   }

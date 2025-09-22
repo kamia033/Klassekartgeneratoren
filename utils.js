@@ -96,7 +96,14 @@ export function getDeskGroups() {
 
   
 export function assignStudents() {
-    const names = document.getElementById("studentList").value.split("\n");
+    // Use checkbox system if available, otherwise fall back to textarea
+    let names = [];
+    if (window.getCheckedStudents) {
+      names = window.getCheckedStudents('studentList', 'studentCheckboxList');
+    } else {
+      names = document.getElementById("studentList").value.split("\n");
+    }
+    names = names.map(name => name.trim()).filter(name => name.length > 0);
     grid.assignStudents(names);
   }
   let debounceTimeout;
@@ -203,6 +210,14 @@ export function assignStudents() {
       const groupStudentList = document.getElementById("groupStudentList");
       if (groupStudentList && savedClasses[className].studentList) {
         groupStudentList.value = savedClasses[className].studentList;
+      }
+      
+      // Update checkbox lists if available
+      if (window.updateCheckboxListFromTextarea) {
+        window.updateCheckboxListFromTextarea('studentList', 'studentCheckboxList');
+        if (groupStudentList) {
+          window.updateCheckboxListFromTextarea('groupStudentList', 'groupStudentCheckboxList');
+        }
       }
     }
   }

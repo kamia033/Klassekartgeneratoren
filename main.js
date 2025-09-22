@@ -31,6 +31,13 @@ window.switchTab = function(tabName) {
   const fullscreenBtn = document.getElementById('fullscreen-button');
   
   if (tabName === 'grupper') {
+    // Synkroniser klasse fra klassekart til grupper
+    const classroomSelected = document.querySelector('.dropdown-selected');
+    const groupSelected = document.getElementById('group-dropdown-selected');
+    if (classroomSelected && groupSelected) {
+      groupSelected.textContent = classroomSelected.textContent;
+    }
+    
     // Synkroniser elevliste automatisk når vi bytter til grupper-tab
     if (window.syncFromClassroomToGroups) {
       window.syncFromClassroomToGroups();
@@ -43,6 +50,13 @@ window.switchTab = function(tabName) {
       groupsContainer.style.display = 'grid';
     }
   } else {
+    // Synkroniser klasse fra grupper til klassekart
+    const groupSelected = document.getElementById('group-dropdown-selected');
+    const classroomSelected = document.querySelector('.dropdown-selected');
+    if (groupSelected && classroomSelected) {
+      classroomSelected.textContent = groupSelected.textContent;
+    }
+    
     if (canvas) canvas.style.display = 'block';
     if (canvasControls) canvasControls.style.display = 'flex';
     if (fullscreenBtn) fullscreenBtn.style.display = 'block';

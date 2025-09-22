@@ -57,7 +57,7 @@
       <!-- Klassekart Tab -->
       <div id="klassekart-tab" class="tab-content active">
         <div class="tab-navigation">
-          <div id="mode-selector" >
+          <div class="mode-selector" >
             <button id="klassekart-btn" onclick="switchTab('klassekart')" class="active-tab">📍 Klassekart</button>
             <button id="grupper-btn" onclick="switchTab('grupper')">🧑‍🤝‍🧑 Grupper (beta)</button>
           </div>
@@ -86,7 +86,18 @@
         </div>
        
       </div>
-      <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)"></textarea>
+      <div class="student-list-container">
+        <div class="student-input-section">
+          <textarea id="studentList" placeholder="Skriv inn elevnavn (ett per linje)" style="display: none;"></textarea>
+          <div class="student-list-with-checkboxes" id="studentCheckboxList" style="display: none;">
+            <!-- Dynamically populated with checkboxes -->
+          </div>
+          <div class="student-input-controls">
+            <button id="toggleInputMode" onclick="toggleStudentInputMode()" style="font-size: 12px; padding: 4px 8px;">📝 Rediger liste</button>
+            
+          </div>
+        </div>
+      </div>
       <button onclick="assignStudents()">✨Plasser elever✨</button>
       <div id="assignmentWarning">⚠️ Ikke alle elever har blitt tildelt plass!</div>
       
@@ -160,9 +171,9 @@
     <!-- Grupper Tab -->
     <div id="grupper-tab" class="tab-content">
       <div class="tab-navigation">
-        <div class="save-section" style="display: flex; gap: 4px;">
+        <div class="mode-selector" >
           <button id="klassekart-btn-2" onclick="switchTab('klassekart')">📍 Klassekart</button>
-          <button id="grupper-btn-2" onclick="switchTab('grupper')" class="active-tab">� Grupper</button>
+          <button id="grupper-btn-2" onclick="switchTab('grupper')" class="active-tab">🧑‍🤝‍🧑 Grupper (beta)</button>
         </div>
       </div>
       <div class="save-section">
@@ -180,8 +191,19 @@
         </div>
       </div>
       
-       
-        <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="margin: 0; width: calc(100% - 20px);"></textarea>
+      <div class="student-list-container">
+        <div class="student-input-section">
+          <textarea id="groupStudentList" placeholder="Skriv inn elevnavn (ett per linje)" style="display: none; margin: 0; width: calc(100% - 20px);"></textarea>
+          <div class="student-list-with-checkboxes" id="groupStudentCheckboxList" style="display: none;">
+            <!-- Dynamically populated with checkboxes -->
+          </div>
+          <div class="student-input-controls">
+            <button id="toggleGroupInputMode" onclick="toggleGroupStudentInputMode()" style="font-size: 12px; padding: 4px 8px;">📝 Rediger liste</button>
+            <button id="selectAllGroupStudents" onclick="selectAllGroupStudents()" style="font-size: 12px; padding: 4px 8px;">✅ Velg alle</button>
+            <button id="deselectAllGroupStudents" onclick="deselectAllGroupStudents()" style="font-size: 12px; padding: 4px 8px;">❌ Fjern alle</button>
+          </div>
+        </div>
+      </div>
       
 
       <div class="save-section">
@@ -305,6 +327,7 @@
   <script type="module" src="utils.js"></script>
   <script src="colors.js"></script>
   <script type="module" src="groups.js"></script>
+  <script src="studentCheckbox.js"></script>
 </body>
 
 </html>
