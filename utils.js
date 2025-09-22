@@ -498,7 +498,7 @@ export function sparkleItUp(scheme) {
       if (index < palette.length) {
         const color = palette[index];
         const emoji = emojis[0];
-        group.forEach(group => { group.color = color; });
+        group.forEach(desk => { desk.color = color; });
         // Bruk gridX/gridY for posisjon
         let centerX = group.reduce((sum, desk) => sum + (desk.gridX * grid.cellSize), 0) / group.length + grid.cellSize/2;
         let centerY = group.reduce((sum, desk) => sum + (desk.gridY * grid.cellSize), 0) / group.length + grid.cellSize/2;
