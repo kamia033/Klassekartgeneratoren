@@ -1,0 +1,31 @@
+.role-setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+   
+    background-color: aliceblue;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    margin-right: 50%;
+    margin: 20px;
+}
+
+.role-setting-row button{
+    
+    height: 100%;
+    margin: 0;
+    width:30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0 10px 10px 0;
+    
+}
+
+
+.role {
+    font-weight: bold;
+    margin:0;
+    margin-left: 15px;
+}
