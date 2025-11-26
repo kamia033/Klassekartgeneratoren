@@ -1,0 +1,21 @@
+#notification {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: var(--accent);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  z-index: 10000;
+  display: none;
+}
+
+#assignmentWarning {
+  display: none;
+  color: red;
+  font-weight: 600;
+  color: black;
+  transition: all 0.3s ease;
+}

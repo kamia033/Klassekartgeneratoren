@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
-import type { Student, CanvasItem, Desk, RoundTable } from '../../types';
+import type { CanvasItem, Desk, RoundTable } from '../../types';
+import './RightPanel.css';
+import './Groups.css';
+import './Roles.css';
+import './Colors.css';
 
 const RightPanel: React.FC = () => {
   const { activeTab, setActiveTab, mode, setMode, students, setStudents, canvasItems, setCanvasItems, setGeneratedGroups, absentStudents, setAbsentStudents, setIsAnimating, secondaryMapItems, setSecondaryMapItems, currentMapIndex, setCurrentMapIndex, currentClass, setCurrentClass } = useApp();

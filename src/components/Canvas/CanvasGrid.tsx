@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import type { CanvasItem, Desk, RoundTable, Label } from '../../types';
 import ContextMenu from '../UI/ContextMenu';
+import './CanvasGrid.css';
 
 interface CanvasGridProps {
   width: number;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './ContextMenu.css';
 
 interface ContextMenuProps {
   x: number;

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import CanvasGrid from '../Canvas/CanvasGrid';
+import './LeftPanel.css';
+import './Groups.css';
 
 const LeftPanel: React.FC = () => {
   const { activeTab, generatedGroups, isAnimating, setIsAnimating, currentClass } = useApp();
-  const [cellSize, setCellSize] = useState(40);
+  const [cellSize] = useState(40);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const groupsContainerRef = useRef<HTMLDivElement>(null);
 

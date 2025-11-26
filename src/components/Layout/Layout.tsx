@@ -1,4 +1,5 @@
 import React from 'react';
+import './Layout.css';
 import LeftPanel from './LeftPanel';
 import RightPanel from './RightPanel';
 

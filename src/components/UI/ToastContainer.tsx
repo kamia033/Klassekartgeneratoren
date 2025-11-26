@@ -1,5 +1,6 @@
 import React from 'react';
 import { useToast } from '../../context/ToastContext';
+import './ToastContainer.css';
 
 const ToastContainer: React.FC = () => {
   const { toasts, removeToast } = useToast();

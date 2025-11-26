@@ -1,0 +1,24 @@
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  gap: 20px;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  height: 100vh;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  font-size: 16px;
+  color: #777;
+  background-color: var(--element_background);
+}
