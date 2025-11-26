@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import CanvasGrid from '../Canvas/CanvasGrid';
+import CanvasToolbar from '../Canvas/CanvasToolbar';
 import './LeftPanel.css';
 import './Groups.css';
 
 const LeftPanel: React.FC = () => {
-  const { activeTab, generatedGroups, isAnimating, setIsAnimating, currentClass } = useApp();
+  const { activeTab, generatedGroups, isAnimating, setIsAnimating, currentClass, groupScale, setGroupScale } = useApp();
   const [cellSize] = useState(40);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const groupsContainerRef = useRef<HTMLDivElement>(null);
@@ -74,29 +75,19 @@ const LeftPanel: React.FC = () => {
         )}
         
         {activeTab === 'grupper' && (
-            <div ref={groupsContainerRef} id="groups-container-react" style={{ 
-                display: 'block', 
-                padding: '10px', 
-                overflow: 'auto', 
-                height: '100%',
+            <div ref={groupsContainerRef} id="groups-container-react" className="scroll-wrapper" style={{ 
                 backgroundColor: '#f7f9fc',
-                width: '100%',
-                position: 'relative',
-                boxSizing: 'border-box'
+                display: 'block',
+                boxSizing: 'border-box',
+                position: 'relative'
             }}>
-                <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 20 }}>
-                    <button onClick={handleGroupsFullscreen} title="Fullskjerm" style={{ padding: '5px 10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '3px', background: 'white' }}>⛶</button>
-                </div>
-
                 <div id="groups-visual-content" style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: isFullscreen ? 'repeat(auto-fill, minmax(350px, 1fr))' : 'repeat(auto-fill, minmax(220px, 1fr))', 
+                    gridTemplateColumns: isFullscreen ? 'repeat(auto-fill, minmax(350px, 1fr))' : `repeat(auto-fill, minmax(${220 * (groupScale || 1)}px, 1fr))`, 
                     gap: isFullscreen ? '25px' : '15px', 
-                    padding: isFullscreen ? '50px' : '30px 10px 10px 10px',
+                    padding: isFullscreen ? '50px' : '30px 10px 80px 10px',
                     alignItems: 'start',
                     width: '100%',
-                    maxWidth: isFullscreen ? '90%' : '1200px',
-                    margin: '0 auto',
                     boxSizing: 'border-box'
                 }}>
                     {generatedGroups.map((group, index) => {
@@ -120,25 +111,25 @@ const LeftPanel: React.FC = () => {
                         }}>
                             <div className="group-header" style={{ 
                                 fontWeight: '600', 
-                                padding: isFullscreen ? '18px 22px' : '12px 15px',
+                                padding: isFullscreen ? '18px 22px' : `${12 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`,
                                 backgroundColor: getGroupColor(index),
                                 color: '#333',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                fontSize: isFullscreen ? '24px' : '18px'
+                                fontSize: isFullscreen ? '24px' : `${18 * (groupScale || 1)}px`
                             }}>
                                 <span>Gruppe {index + 1}</span>
                             </div>
-                            <ul className="group-students-list" style={{ listStyle: 'none', padding: '10px 0', margin: 0 }}>
+                            <ul className="group-students-list" style={{ listStyle: 'none', padding: `${10 * (groupScale || 1)}px 0`, margin: 0 }}>
                                 {members.map((student, sIndex) => (
                                     <li key={sIndex} className="group-student-item" style={{ 
-                                        padding: isFullscreen ? '12px 20px' : '8px 15px', 
+                                        padding: isFullscreen ? '12px 20px' : `${8 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`, 
                                         borderBottom: sIndex < members.length - 1 ? '1px solid #f0f0f0' : 'none',
                                         display: 'flex',
                                         justifyContent: 'center',
                                         alignItems: 'center',
-                                        fontSize: isFullscreen ? '20px' : '16px'
+                                        fontSize: isFullscreen ? '20px' : `${16 * (groupScale || 1)}px`
                                     }}>
                                         <span>{student}</span>
                                         {group.leader === student && <span title="Gruppeleder" style={{ marginLeft: '8px' }}>👑</span>}
@@ -167,6 +158,11 @@ const LeftPanel: React.FC = () => {
                         </div>
                     )}
                 </div>
+                <CanvasToolbar 
+                    scale={groupScale || 1}
+                    setScale={setGroupScale}
+                    onFullscreen={handleGroupsFullscreen}
+                />
             </div>
         )}
 

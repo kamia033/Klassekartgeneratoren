@@ -27,6 +27,8 @@ interface AppContextType {
   setSecondaryMapItems: (items: CanvasItem[]) => void;
   currentMapIndex: number;
   setCurrentMapIndex: (index: number) => void;
+  groupScale: number;
+  setGroupScale: (scale: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -42,6 +44,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [absentStudents, setAbsentStudents] = useState<string[]>([]);
   const [secondaryMapItems, setSecondaryMapItems] = useState<CanvasItem[]>([]);
   const [currentMapIndex, setCurrentMapIndex] = useState<number>(0);
+  const [groupScale, setGroupScale] = useState<number>(1);
 
   return (
     <AppContext.Provider
@@ -66,6 +69,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSecondaryMapItems,
         currentMapIndex,
         setCurrentMapIndex,
+        groupScale,
+        setGroupScale,
       }}
     >
       {children}

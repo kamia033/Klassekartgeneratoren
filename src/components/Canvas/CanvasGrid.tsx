@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import type { CanvasItem, Desk, RoundTable, Label } from '../../types';
 import ContextMenu from '../UI/ContextMenu';
+import CanvasToolbar from './CanvasToolbar';
 import './CanvasGrid.css';
 
 interface CanvasGridProps {
@@ -933,21 +934,13 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#f0f0f0' }}>
-        <div className="canvas-toolbar">
-            <span>Zoom:</span>
-            <input 
-                type="range" 
-                min="0.5" 
-                max="3" 
-                step="0.1" 
-                value={scale} 
-                onChange={(e) => setScale(parseFloat(e.target.value))} 
-            />
-            <div className="separator"></div>
-            <button onClick={handleFullscreen} title="Fullskjerm">⛶</button>
-            <button onClick={handleCopy} title="Kopier til utklippstavle">📋</button>
-            <button onClick={handleDownload} title="Last ned bilde">💾</button>
-        </div>
+        <CanvasToolbar 
+            scale={scale} 
+            setScale={setScale} 
+            onFullscreen={handleFullscreen} 
+            onCopy={handleCopy} 
+            onDownload={handleDownload} 
+        />
         <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
             <div style={{ width: width * scale, height: height * scale }}>
                 <canvas 

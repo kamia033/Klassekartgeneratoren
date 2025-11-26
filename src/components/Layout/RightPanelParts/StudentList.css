@@ -1,0 +1,85 @@
+.student-list-container {
+  margin-bottom: 10px;
+}
+
+.student-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-list-with-checkboxes {
+  background-color: white;
+  border: 2px solid #424242;
+  border-radius: 4px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.checkbox-item:last-child {
+  border-bottom: none;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  padding: 5px;
+  border-radius: 2px;
+  cursor: pointer;
+  accent-color: #424242;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 400;
+  color: #333;
+  user-select: none;
+  flex: 1;
+}
+
+.checkbox-label:hover {
+  color: var(--accent);
+}
+
+.checkbox-item input[type="checkbox"]:not(:checked) + .checkbox-label {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.student-input-controls {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.student-input-controls button {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.student-input-controls button:hover {
+  background-color: #e8e8e8;
+  color: #333;
+}
+
+textarea {
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}

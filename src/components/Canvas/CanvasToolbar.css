@@ -1,0 +1,42 @@
+.canvas-toolbar {
+  position: absolute;
+  
+  bottom: 10px;
+  left: 20px;
+  right:20px;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 5px 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+}
+
+.canvas-toolbar span {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.canvas-toolbar input[type="range"] {
+  width: 100px;
+  cursor: pointer;
+}
+
+.canvas-toolbar .separator {
+  width: 1px;
+  height: 20px;
+  background-color: #ccc;
+  margin: 0 5px;
+}
+
+.canvas-toolbar button {
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: white;
+}
