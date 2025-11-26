@@ -11,7 +11,7 @@ import './Roles.css';
 import './Colors.css';
 
 const RightPanel: React.FC = () => {
-  const { activeTab, setActiveTab, students, canvasItems, secondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode } = useApp();
+  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode } = useApp();
   const { addToast } = useToast();
   const [savedClasses, setSavedClasses] = useState<string[]>([]);
 
@@ -24,6 +24,8 @@ const RightPanel: React.FC = () => {
       const classes = JSON.parse(localStorage.getItem('classes') || '{}');
       if (classes[className]) {
           setStudents(classes[className].students || []);
+          setCanvasItems(classes[className].canvasItems || []);
+          setSecondaryMapItems(classes[className].canvasItems2 || []);
           setCurrentClass(className);
           addToast(`Lastet klasse: ${className}`, 'success');
       }
@@ -42,6 +44,16 @@ const RightPanel: React.FC = () => {
           setSavedClasses(Object.keys(classes));
           setCurrentClass(name);
           setStudents([]);
+          setCanvasItems([]);
+          setSecondaryMapItems([]);
+          
+          // Reset scroll position
+          const scrollWrapper = document.querySelector('.scroll-wrapper');
+          if (scrollWrapper) {
+              scrollWrapper.scrollTop = 0;
+              scrollWrapper.scrollLeft = 0;
+          }
+          
           addToast(`Opprettet klasse: ${name}`, 'success');
       }
   };

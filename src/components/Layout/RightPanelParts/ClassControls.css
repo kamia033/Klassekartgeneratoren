@@ -32,6 +32,12 @@
   box-sizing: border-box;
 }
 
+#createAndDeleteButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .dropdown-selected {
   padding: 10px;
 }
@@ -120,4 +126,10 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   scale: 1.1;
   transition: left 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.save-section img{
+  width: 30px;
+  height: 30px;
+  
 }

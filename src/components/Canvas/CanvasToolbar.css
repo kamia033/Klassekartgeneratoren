@@ -8,12 +8,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 5px;
+  gap: 15px !important;
   background-color: rgba(255, 255, 255, 0.9);
   padding: 5px 10px;
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 20;
+}
+
+.canvas-toolbar-scale {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+
+.canvas-toolbar-scale input[type="range"] {
+  flex: 1;
+  min-width: 50px;
+  cursor: pointer;
 }
 
 .canvas-toolbar span {
@@ -22,8 +35,8 @@
 }
 
 .canvas-toolbar input[type="range"] {
-  width: 100px;
   cursor: pointer;
+  accent-color: #2a2a2a;
 }
 
 .canvas-toolbar .separator {
@@ -34,9 +47,34 @@
 }
 
 .canvas-toolbar button {
-  padding: 5px 10px;
+  display: flex !important;
+  align-items: center !important;
+  padding: 2px 6px !important;
+  white-space: nowrap;
+  
   cursor: pointer;
-  border: 1px solid #ccc;
+  border: 2px solid #2a2a2a !important;
   border-radius: 3px;
-  background: white;
+  color: #1b1b1b !important;
+  font-weight: bold !important;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(237, 237, 237);
+  
+
+}
+
+.canvas-toolbar button:hover {
+  background: #cecece !important;
+}
+
+.canvas-toolbar button img {
+  padding-right: 5px;
+}
+.canvas-toolbar  img {
+  width: 20px;
+  height: 20px;
+}
+.canvas-toolbar-exports {
+  display: flex;
+  gap: 5px;
 }

@@ -629,6 +629,26 @@
   border: none;
 }
 
+#generateButton{
+margin-bottom: 5px;
+  
+}
+
+#generateButton div{
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding-bottom: 10px !important;
+border-bottom: 4px solid #4CAF50;
+padding-bottom: 2px;
+}
+
+#generateButton:hover{
+  cursor: pointer;
+  background: #ebffed !important;
+}
+
 /* Responsiv design for mindre skjermer */
 @media (max-width: 768px) {
   #groups-visual-container {
@@ -709,3 +729,4 @@
     filter: saturate(1) brightness(1);
   }
 }
+

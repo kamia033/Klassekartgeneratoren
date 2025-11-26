@@ -75,12 +75,19 @@ const LeftPanel: React.FC = () => {
         )}
         
         {activeTab === 'grupper' && (
-            <div ref={groupsContainerRef} id="groups-container-react" className="scroll-wrapper" style={{ 
+            <div ref={groupsContainerRef} id="groups-container-react" style={{ 
                 backgroundColor: '#f7f9fc',
                 display: 'block',
                 boxSizing: 'border-box',
-                position: 'relative'
+                position: 'relative',
+                height: '100%',
+                overflow: 'hidden'
             }}>
+                <div className="scroll-wrapper" style={{
+                    height: '100%',
+                    overflowY: 'auto',
+                    paddingBottom: '60px' // Make space for toolbar
+                }}>
                 <div id="groups-visual-content" style={{ 
                     display: 'grid', 
                     gridTemplateColumns: isFullscreen ? 'repeat(auto-fill, minmax(350px, 1fr))' : `repeat(auto-fill, minmax(${220 * (groupScale || 1)}px, 1fr))`, 
@@ -157,6 +164,7 @@ const LeftPanel: React.FC = () => {
                             <p>Bruk kontrollpanelet til høyre for å generere grupper.</p>
                         </div>
                     )}
+                </div>
                 </div>
                 <CanvasToolbar 
                     scale={groupScale || 1}

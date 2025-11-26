@@ -22,17 +22,48 @@ const MapControls: React.FC = () => {
 
       palette = palette.sort(() => Math.random() - 0.5);
       
-      // Simple coloring logic for now - can be expanded to match original if needed
       const newItems = [...canvasItems];
-      let colorIndex = 0;
       
+      // Grouping logic for desks
+      const desks = newItems.filter(item => item.type === 'desk') as Desk[];
+      const visited = new Set<string>();
+      let groupColorIndex = 0;
+
+      const areAdjacent = (d1: Desk, d2: Desk) => {
+          const dx = Math.abs(d1.gridX - d2.gridX);
+          const dy = Math.abs(d1.gridY - d2.gridY);
+          // Check for 8-way connectivity (including diagonals)
+          return dx <= 1 && dy <= 1 && !(dx === 0 && dy === 0);
+      };
+
+      desks.forEach(desk => {
+          if (visited.has(desk.id)) return;
+
+          const queue = [desk];
+          visited.add(desk.id);
+          const group = [desk];
+
+          while (queue.length > 0) {
+              const current = queue.shift()!;
+              desks.forEach(other => {
+                  if (!visited.has(other.id) && areAdjacent(current, other)) {
+                      visited.add(other.id);
+                      queue.push(other);
+                      group.push(other);
+                  }
+              });
+          }
+
+          const color = palette[groupColorIndex % palette.length];
+          group.forEach(d => d.color = color);
+          groupColorIndex++;
+      });
+      
+      // Color roundtables individually
       newItems.forEach(item => {
-          if (item.type === 'desk') {
-             (item as Desk).color = palette[colorIndex % palette.length];
-             colorIndex++;
-          } else if (item.type === 'roundtable') {
-             (item as RoundTable).color = palette[colorIndex % palette.length];
-             colorIndex++;
+          if (item.type === 'roundtable') {
+             (item as RoundTable).color = palette[groupColorIndex % palette.length];
+             groupColorIndex++;
           }
       });
 
@@ -40,24 +71,235 @@ const MapControls: React.FC = () => {
   };
 
   const assignStudents = () => {
-      // Simplified assignment logic to match the new structure but keep the button
       const presentStudents = students.filter(s => !absentStudents.includes(s));
       const shuffledStudents = [...presentStudents].sort(() => Math.random() - 0.5);
       
-      let studentIndex = 0;
-      const newItems = canvasItems.map(item => {
-          if (item.type === 'desk') {
-              return { ...item, studentId: shuffledStudents[studentIndex++] || null };
-          } else if (item.type === 'roundtable') {
+      // Helper to get available seats count
+      const getAvailableSeats = (items: typeof canvasItems) => {
+          let count = 0;
+          items.forEach(item => {
+              if (item.type === 'desk' && !(item as Desk).marked) count++;
+              if (item.type === 'roundtable') {
+                  (item as RoundTable).markedSeats.forEach(marked => {
+                      if (!marked) count++;
+                  });
+              }
+          });
+          return count;
+      };
+
+      // Check if we can fit everyone
+      const seatsMap1 = getAvailableSeats(canvasItems);
+      const seatsMap2 = getAvailableSeats(secondaryMapItems);
+      
+      if (seatsMap1 < shuffledStudents.length) {
+          addToast(`Advarsel: Kart 1 mangler ${shuffledStudents.length - seatsMap1} plasser!`, 'error');
+      }
+      if (seatsMap2 < shuffledStudents.length) {
+          addToast(`Advarsel: Kart 2 mangler ${shuffledStudents.length - seatsMap2} plasser!`, 'error');
+      }
+
+      // 1. Assign to Map 1 (Randomly)
+      const assignToMapRandomly = (items: typeof canvasItems, studentList: string[]) => {
+          let studentIndex = 0;
+          return items.map(item => {
+              if (item.type === 'desk') {
+                  const desk = item as Desk;
+                  if (desk.marked) return { ...desk, studentId: null };
+                  return { ...desk, studentId: studentList[studentIndex++] || null };
+              } else if (item.type === 'roundtable') {
+                  const t = item as RoundTable;
+                  const newIds = t.studentIds.map((_, i) => {
+                      if (t.markedSeats[i]) return null;
+                      return studentList[studentIndex++] || null;
+                  });
+                  return { ...t, studentIds: newIds };
+              }
+              return item;
+          });
+      };
+
+      const newCanvasItems = assignToMapRandomly(canvasItems, shuffledStudents);
+      setCanvasItems(newCanvasItems);
+
+      // 2. Extract Groups from Map 1
+      const studentGroups: string[][] = [];
+      
+      // 2a. Roundtables
+      newCanvasItems.forEach(item => {
+          if (item.type === 'roundtable') {
               const t = item as RoundTable;
-              const newIds = t.studentIds.map(() => shuffledStudents[studentIndex++] || null);
-              return { ...t, studentIds: newIds };
+              const group = t.studentIds.filter(id => id !== null) as string[];
+              if (group.length > 0) studentGroups.push(group);
+          }
+      });
+
+      // 2b. Desks (Connected Components)
+      const desks = newCanvasItems.filter(item => item.type === 'desk' && (item as Desk).studentId) as Desk[];
+      const visited = new Set<string>();
+      
+      const areAdjacent = (d1: Desk, d2: Desk) => {
+          const dx = Math.abs(d1.gridX - d2.gridX);
+          const dy = Math.abs(d1.gridY - d2.gridY);
+          return dx <= 1 && dy <= 1 && !(dx === 0 && dy === 0);
+      };
+
+      desks.forEach(desk => {
+          if (visited.has(desk.id)) return;
+          
+          const queue = [desk];
+          visited.add(desk.id);
+          const group: string[] = [desk.studentId!];
+
+          while (queue.length > 0) {
+              const current = queue.shift()!;
+              desks.forEach(other => {
+                  if (!visited.has(other.id) && areAdjacent(current, other)) {
+                      visited.add(other.id);
+                      queue.push(other);
+                      group.push(other.studentId!);
+                  }
+              });
+          }
+          studentGroups.push(group);
+      });
+
+      // 3. Identify Seat Clusters in Map 2
+      type SeatRef = { itemId: string, seatIndex?: number };
+      type SeatCluster = { seats: SeatRef[], capacity: number };
+      const seatClusters: SeatCluster[] = [];
+
+      // 3a. Roundtables in Map 2
+      secondaryMapItems.forEach(item => {
+          if (item.type === 'roundtable') {
+              const t = item as RoundTable;
+              const seats: SeatRef[] = [];
+              t.studentIds.forEach((_, i) => {
+                  if (!t.markedSeats[i]) {
+                      seats.push({ itemId: t.id, seatIndex: i });
+                  }
+              });
+              if (seats.length > 0) {
+                  seatClusters.push({ seats, capacity: seats.length });
+              }
+          }
+      });
+
+      // 3b. Desks in Map 2
+      const map2Desks = secondaryMapItems.filter(item => item.type === 'desk' && !(item as Desk).marked) as Desk[];
+      const visitedMap2 = new Set<string>();
+
+      map2Desks.forEach(desk => {
+          if (visitedMap2.has(desk.id)) return;
+          
+          const queue = [desk];
+          visitedMap2.add(desk.id);
+          const seats: SeatRef[] = [{ itemId: desk.id }];
+
+          while (queue.length > 0) {
+              const current = queue.shift()!;
+              map2Desks.forEach(other => {
+                  if (!visitedMap2.has(other.id) && areAdjacent(current, other)) {
+                      visitedMap2.add(other.id);
+                      queue.push(other);
+                      seats.push({ itemId: other.id });
+                  }
+              });
+          }
+          seatClusters.push({ seats, capacity: seats.length });
+      });
+
+      // 4. Match Groups to Clusters
+      studentGroups.sort((a, b) => b.length - a.length);
+      
+      const assignedMap2 = new Map<string, string | null>();
+      const assignedMap2RT = new Map<string, (string | null)[]>();
+
+      secondaryMapItems.forEach(item => {
+          if (item.type === 'desk') assignedMap2.set(item.id, null);
+          if (item.type === 'roundtable') assignedMap2RT.set(item.id, new Array((item as RoundTable).numSeats).fill(null));
+      });
+
+      let splitGroups = 0;
+      const unassignedStudents: string[] = [];
+
+      studentGroups.forEach(group => {
+          const validClusters = seatClusters.filter(c => c.seats.length >= group.length);
+          let targetCluster: SeatCluster | null = null;
+
+          if (validClusters.length > 0) {
+              validClusters.sort((a, b) => a.seats.length - b.seats.length);
+              targetCluster = validClusters[0];
+          } else {
+              const availableClusters = seatClusters.filter(c => c.seats.length > 0);
+              availableClusters.sort((a, b) => b.seats.length - a.seats.length);
+              if (availableClusters.length > 0) {
+                  targetCluster = availableClusters[0];
+              }
+              splitGroups++;
+          }
+
+          if (targetCluster) {
+              const seatsToFill = Math.min(group.length, targetCluster.seats.length);
+              const studentsToPlace = group.slice(0, seatsToFill);
+              const remainingStudents = group.slice(seatsToFill);
+              
+              studentsToPlace.forEach((studentId, i) => {
+                  const seat = targetCluster!.seats[i];
+                  if (seat.seatIndex !== undefined) {
+                      const currentArr = assignedMap2RT.get(seat.itemId)!;
+                      currentArr[seat.seatIndex] = studentId;
+                      assignedMap2RT.set(seat.itemId, currentArr);
+                  } else {
+                      assignedMap2.set(seat.itemId, studentId);
+                  }
+              });
+
+              targetCluster.seats.splice(0, seatsToFill);
+              
+              if (remainingStudents.length > 0) {
+                  unassignedStudents.push(...remainingStudents);
+              }
+          } else {
+              unassignedStudents.push(...group);
+          }
+      });
+
+      // 5. Fill remaining gaps
+      if (unassignedStudents.length > 0) {
+          const allRemainingSeats: SeatRef[] = [];
+          seatClusters.forEach(c => allRemainingSeats.push(...c.seats));
+          
+          unassignedStudents.forEach((studentId, i) => {
+              if (i < allRemainingSeats.length) {
+                  const seat = allRemainingSeats[i];
+                  if (seat.seatIndex !== undefined) {
+                      const currentArr = assignedMap2RT.get(seat.itemId)!;
+                      currentArr[seat.seatIndex] = studentId;
+                  } else {
+                      assignedMap2.set(seat.itemId, studentId);
+                  }
+              }
+          });
+      }
+
+      // 6. Reconstruct Map 2 Items
+      const finalMap2Items = secondaryMapItems.map(item => {
+          if (item.type === 'desk') {
+              return { ...item, studentId: assignedMap2.get(item.id) || null };
+          } else if (item.type === 'roundtable') {
+              return { ...item, studentIds: assignedMap2RT.get(item.id) || new Array((item as RoundTable).numSeats).fill(null) };
           }
           return item;
       });
-      
-      setCanvasItems(newItems);
-      addToast('Elever plassert!', 'success');
+
+      setSecondaryMapItems(finalMap2Items);
+
+      if (splitGroups > 0) {
+          addToast(`Advarsel: ${splitGroups} grupper måtte splittes i Kart 2.`, 'info');
+      } else {
+          addToast('Elever plassert! Grupperinger bevart.', 'success');
+      }
   };
 
   const switchMap = (index: number) => {

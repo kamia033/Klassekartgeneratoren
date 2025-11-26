@@ -130,7 +130,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             drawFittedText(ctx, desk.studentId, x + 2, y + 2, cellSize - 4, cellSize - 4, textColor);
         }
 
-        if (desk.marked) {
+        if (desk.marked && showGrid) { // Only show marked 'X' if grid is shown (edit mode)
             ctx.strokeStyle = 'blue';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -226,7 +226,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
                 ctx.stroke();
 
                 // Draw marked seat cross
-                if (table.markedSeats[i]) {
+                if (table.markedSeats[i] && showGrid) { // Only show marked 'X' if grid is shown (edit mode)
                     ctx.strokeStyle = 'blue';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
