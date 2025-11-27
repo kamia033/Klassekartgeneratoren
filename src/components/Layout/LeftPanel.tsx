@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useToast } from '../../context/ToastContext';
 import CanvasGrid from '../Canvas/CanvasGrid';
 import CanvasToolbar from '../Canvas/CanvasToolbar';
+import html2canvas from 'html2canvas';
 import './LeftPanel.css';
 import './Groups.css';
 
 const LeftPanel: React.FC = () => {
   const { activeTab, generatedGroups, isAnimating, setIsAnimating, currentClass, groupScale, setGroupScale } = useApp();
+  const { addToast } = useToast();
   const [cellSize] = useState(40);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const groupsContainerRef = useRef<HTMLDivElement>(null);
@@ -46,6 +49,50 @@ const LeftPanel: React.FC = () => {
           });
       } else {
           document.exitFullscreen();
+      }
+  };
+
+  const handleCopy = async () => {
+      const element = document.getElementById('groups-visual-content');
+      if (!element) return;
+
+      try {
+          const canvas = await html2canvas(element, {
+              backgroundColor: '#f7f9fc',
+              scale: 2,
+          });
+
+          canvas.toBlob(async (blob) => {
+              if (blob) {
+                  await navigator.clipboard.write([
+                      new ClipboardItem({ 'image/png': blob })
+                  ]);
+                  addToast('Kopiert til utklippstavle!', 'success');
+              }
+          });
+      } catch (err) {
+          console.error('Failed to copy: ', err);
+          addToast('Kunne ikke kopiere til utklippstavle.', 'error');
+      }
+  };
+
+  const handleDownload = async () => {
+      const element = document.getElementById('groups-visual-content');
+      if (!element) return;
+
+      try {
+          const canvas = await html2canvas(element, {
+              backgroundColor: '#f7f9fc',
+              scale: 2,
+          });
+
+          const link = document.createElement('a');
+          link.download = 'grupper.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+      } catch (error) {
+          console.error('Error generating image:', error);
+          addToast('Kunne ikke laste ned bilde.', 'error');
       }
   };
 
@@ -90,8 +137,8 @@ const LeftPanel: React.FC = () => {
                 }}>
                 <div id="groups-visual-content" style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: isFullscreen ? 'repeat(auto-fill, minmax(350px, 1fr))' : `repeat(auto-fill, minmax(${220 * (groupScale || 1)}px, 1fr))`, 
-                    gap: isFullscreen ? '25px' : '15px', 
+                    gridTemplateColumns: isFullscreen ? `repeat(auto-fill, minmax(${350 * (groupScale || 1)}px, 1fr))` : `repeat(auto-fill, minmax(${220 * (groupScale || 1)}px, 1fr))`, 
+                    gap: isFullscreen ? `${25 * (groupScale || 1)}px` : '15px', 
                     padding: isFullscreen ? '50px' : '30px 10px 80px 10px',
                     alignItems: 'start',
                     width: '100%',
@@ -118,25 +165,25 @@ const LeftPanel: React.FC = () => {
                         }}>
                             <div className="group-header" style={{ 
                                 fontWeight: '600', 
-                                padding: isFullscreen ? '18px 22px' : `${12 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`,
+                                padding: isFullscreen ? `${18 * (groupScale || 1)}px ${22 * (groupScale || 1)}px` : `${12 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`,
                                 backgroundColor: getGroupColor(index),
                                 color: '#333',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                fontSize: isFullscreen ? '24px' : `${18 * (groupScale || 1)}px`
+                                fontSize: isFullscreen ? `${24 * (groupScale || 1)}px` : `${18 * (groupScale || 1)}px`
                             }}>
                                 <span>Gruppe {index + 1}</span>
                             </div>
                             <ul className="group-students-list" style={{ listStyle: 'none', padding: `${10 * (groupScale || 1)}px 0`, margin: 0 }}>
                                 {members.map((student, sIndex) => (
                                     <li key={sIndex} className="group-student-item" style={{ 
-                                        padding: isFullscreen ? '12px 20px' : `${8 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`, 
+                                        padding: isFullscreen ? `${12 * (groupScale || 1)}px ${20 * (groupScale || 1)}px` : `${8 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`, 
                                         borderBottom: sIndex < members.length - 1 ? '1px solid #f0f0f0' : 'none',
                                         display: 'flex',
                                         justifyContent: 'center',
                                         alignItems: 'center',
-                                        fontSize: isFullscreen ? '20px' : `${16 * (groupScale || 1)}px`
+                                        fontSize: isFullscreen ? `${28 * (groupScale || 1)}px` : `${24 * (groupScale || 1)}px`
                                     }}>
                                         <span>{student}</span>
                                         {group.leader === student && <span title="Gruppeleder" style={{ marginLeft: '8px' }}>👑</span>}
@@ -170,6 +217,8 @@ const LeftPanel: React.FC = () => {
                     scale={groupScale || 1}
                     setScale={setGroupScale}
                     onFullscreen={handleGroupsFullscreen}
+                    onCopy={handleCopy}
+                    onDownload={handleDownload}
                 />
             </div>
         )}

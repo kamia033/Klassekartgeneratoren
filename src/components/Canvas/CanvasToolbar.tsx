@@ -23,7 +23,7 @@ const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ scale, setScale, onFullsc
             <img src={zoomOutIcon} alt="Zoom Out" />
             <input
                 type="range"
-                min="0.5"
+                min="0.1"
                 max="3"
                 step="0.03"
                 value={scale}

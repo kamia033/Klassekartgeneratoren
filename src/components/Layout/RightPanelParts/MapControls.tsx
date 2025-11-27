@@ -315,7 +315,7 @@ const MapControls: React.FC = () => {
 
   return (
     <>
-        <button onClick={assignStudents}>✨Plasser elever✨</button>
+        <button id="assignStudentsButton" onClick={assignStudents}><span id="assignStudentsSpan">Plasser elever</span></button>
         
         <div style={{ display: 'flex', marginTop: '10px', border: '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
             <button 

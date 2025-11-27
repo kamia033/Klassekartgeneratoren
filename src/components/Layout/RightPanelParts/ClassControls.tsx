@@ -33,7 +33,7 @@ const ClassControls: React.FC<ClassControlsProps> = ({ savedClasses, loadClass, 
           <img src={addIcon} alt="Add" /><span>Opprett klasse</span>
           </div>
           </button>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px', gap: '4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
           <button onClick={deleteClass} ><img src={deleteIcon} alt="Delete" /></button>
         </div>
       </div>

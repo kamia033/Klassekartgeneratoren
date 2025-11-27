@@ -138,14 +138,14 @@ const GroupControls: React.FC = () => {
         <div className="save-section">
             <button id="generateButton" onClick={generateGroups} >
                 <div>
-                    <img src={diceIcon} alt="Dice" />
+                    <img src={diceIcon} style={{ height: '30px', width: '30px' }} alt="Dice" />
                     <span>Generer grupper</span>
                 </div>
             </button>
 
             <div className="group-controls-horizontal">
                 <div className="group-control-item">
-                    <label>Gruppestørrelse:</label>
+                    <label>Størrelse:</label>
                     <div className="group-size-controls">
                         <button className="adjust-button" onClick={() => adjustGroupSize(1)}>+</button>
                         <input type="number" value={groupSize} readOnly />
@@ -154,7 +154,7 @@ const GroupControls: React.FC = () => {
                 </div>
 
                 <div className="group-control-item">
-                    <label>Antall grupper:</label>
+                    <label>Grupper:</label>
                     <div className="group-count-controls">
                         <button className="adjust-button" onClick={() => adjustGroupCount(1)}>+</button>
                         <input type="number" value={groupCount} readOnly />

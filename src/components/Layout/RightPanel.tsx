@@ -10,6 +10,9 @@ import './Groups.css';
 import './Roles.css';
 import './Colors.css';
 
+import groupIcon from '../../assets/group.svg';
+import pinicon from '../../assets/pin.svg';
+
 const RightPanel: React.FC = () => {
   const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode } = useApp();
   const { addToast } = useToast();
@@ -99,15 +102,16 @@ const RightPanel: React.FC = () => {
                 id="klassekart-btn" 
                 className={activeTab === 'kart' ? 'active-tab' : ''}
                 onClick={() => setActiveTab('kart')}
-            >
-                📍 Kart
+            >   <img src={pinicon} style={{ height: '30px', width: '30px', marginBottom:"2px" }} alt="Pin" />
+                <span>Kart</span>
             </button>
             <button 
                 id="grupper-btn" 
                 className={activeTab === 'grupper' ? 'active-tab' : ''}
                 onClick={() => setActiveTab('grupper')}
             >
-                🧑‍🤝‍🧑 Grupper (beta)
+                <img src={groupIcon} style={{ height: '30px', width: '30px', marginBottom:"2px" }} alt="Group" />
+                <span>Grupper</span>
             </button>
           </div>
         </div>
