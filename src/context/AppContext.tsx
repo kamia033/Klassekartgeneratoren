@@ -35,6 +35,8 @@ interface AppContextType {
   setStudentZoneAssignments: (assignments: Record<string, string[]>) => void;
   showZones: boolean;
   setShowZones: (show: boolean) => void;
+  studentConstraints: Record<string, string[]>; // studentName -> list of studentNames to avoid
+  setStudentConstraints: (constraints: Record<string, string[]>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -54,6 +56,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [uniformTextSize, setUniformTextSize] = useState<boolean>(false);
   const [studentZoneAssignments, setStudentZoneAssignments] = useState<Record<string, string[]>>({});
   const [showZones, setShowZones] = useState<boolean>(false);
+  const [studentConstraints, setStudentConstraints] = useState<Record<string, string[]>>({});
 
   return (
     <AppContext.Provider
@@ -86,6 +89,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setStudentZoneAssignments,
         showZones,
         setShowZones,
+        studentConstraints,
+        setStudentConstraints,
       }}
     >
       {children}

@@ -5,7 +5,7 @@ import '../Groups.css'; // Reuse existing Groups.css
 import diceIcon from '../../../assets/dice.svg';
 
 const GroupControls: React.FC = () => {
-    const { students, absentStudents, setGeneratedGroups, setIsAnimating } = useApp();
+    const { students, absentStudents, setGeneratedGroups, setIsAnimating, studentConstraints } = useApp();
     const { addToast } = useToast();
 
     const [groupSize, setGroupSize] = useState(3);
@@ -64,74 +64,113 @@ const GroupControls: React.FC = () => {
             return;
         }
 
-        // Shuffle students
+        // Sort students by number of constraints (most constrained first) to make placement easier
+        const sortedStudents = [...presentStudents].sort((a, b) => {
+            const constraintsA = (studentConstraints[a] || []).length;
+            const constraintsB = (studentConstraints[b] || []).length;
+            return constraintsB - constraintsA;
+        });
+        
+        // We still shuffle students with same constraint count to ensure randomness
+        // Actually, let's just shuffle first, then sort stable? No, sort is not stable usually.
+        // Let's shuffle, then sort.
         const shuffled = [...presentStudents].sort(() => Math.random() - 0.5);
+        shuffled.sort((a, b) => {
+            const constraintsA = (studentConstraints[a] || []).length;
+            const constraintsB = (studentConstraints[b] || []).length;
+            return constraintsB - constraintsA;
+        });
+
         const groups: { members: string[], leader?: string }[] = [];
 
         // Calculate groups based on SIZE, not count
-        // But respect the user's choice if they manually adjusted count?
-        // The user wants to follow settings.
-        // If we use groupSize as the primary driver:
         let numGroups = Math.floor(shuffled.length / groupSize);
         if (numGroups === 0) numGroups = 1;
         
-        // If keepExtraSeparate is true, we make groups of exactly 'groupSize', and put the rest in a new group.
         if (keepExtraSeparate) {
             numGroups = Math.ceil(shuffled.length / groupSize);
         }
 
-        const baseSize = groupSize; // Use the requested size as base
+        const baseSize = groupSize; 
         
-        // If we are NOT keeping extra separate, we need to distribute the remainder.
-        // But wait, if we use floor(total / size), we get the number of full groups.
-        // Example: 10 students, size 4. floor(10/4) = 2 groups.
-        // Remainder is 2.
-        // If we distribute remainder (2) over the 2 groups, they become size 5.
-        // This matches the request: "Resten kan distriuberes på de første gruppene,slik at noen av de første gruppene har fem medlemmer"
-
-        let currentIndex = 0;
-
+        // Initialize groups with capacities
+        const groupCapacities: number[] = [];
         for (let i = 0; i < numGroups; i++) {
             let size = baseSize;
-            
             if (keepExtraSeparate) {
-                // Strict sizing logic
                 size = groupSize;
-                // The last group takes whatever is left if we are at the end
-                if (currentIndex + size > shuffled.length) {
-                    size = shuffled.length - currentIndex;
+                if (i === numGroups - 1) {
+                    const remainder = shuffled.length % groupSize;
+                    if (remainder > 0) size = remainder;
                 }
             } else {
-                // Distribute extra students evenly
-                // We need to recalculate 'extra' based on the actual number of groups we decided on (floor)
-                const remainder = shuffled.length - (numGroups * baseSize);
+                const remainder = shuffled.length % baseSize;
                 if (i < remainder) {
-                    size++;
+                    size = baseSize + 1;
                 }
             }
-            
-            if (size === 0) continue;
-
-            const groupMembers = shuffled.slice(currentIndex, currentIndex + size);
-            currentIndex += size;
-
-            let leader: string | undefined;
-            if (selectLeaders && groupMembers.length > 0) {
-                leader = groupMembers[Math.floor(Math.random() * groupMembers.length)];
-            }
-
-            groups.push({ members: groupMembers, leader });
+            groupCapacities.push(size);
+            groups.push({ members: [] });
         }
 
+        // Greedy placement with constraints
+        const unplaced: string[] = [];
+
+        shuffled.forEach(student => {
+            const constraints = studentConstraints[student] || [];
+            
+            // Find valid groups (not full, no conflicts)
+            const validGroups = groups.map((g, i) => ({ group: g, index: i, capacity: groupCapacities[i] }))
+                .filter(item => {
+                    if (item.group.members.length >= item.capacity) return false;
+                    // Check constraints
+                    const hasConflict = item.group.members.some(member => 
+                        constraints.includes(member) || (studentConstraints[member] || []).includes(student)
+                    );
+                    return !hasConflict;
+                });
+
+            if (validGroups.length > 0) {
+                // Pick a random valid group to maintain some randomness
+                const chosen = validGroups[Math.floor(Math.random() * validGroups.length)];
+                chosen.group.members.push(student);
+            } else {
+                // No valid group found (either full or conflicts)
+                // Try to find ANY group that is not full
+                const nonFullGroups = groups.map((g, i) => ({ group: g, index: i, capacity: groupCapacities[i] }))
+                    .filter(item => item.group.members.length < item.capacity);
+                
+                if (nonFullGroups.length > 0) {
+                    // Pick one (maybe the one with fewest conflicts?)
+                    // For now just pick random non-full
+                    const chosen = nonFullGroups[Math.floor(Math.random() * nonFullGroups.length)];
+                    chosen.group.members.push(student);
+                    // Ideally we should warn here, but let's just do best effort
+                } else {
+                    // Should not happen if capacities sum to total
+                    unplaced.push(student);
+                }
+            }
+        });
+
+        // If any unplaced (shouldn't happen), force them in somewhere
+        unplaced.forEach(student => {
+             groups[0].members.push(student);
+        });
+
+        if (selectLeaders) {
+            groups.forEach(group => {
+                if (group.members.length > 0) {
+                    const leaderIndex = Math.floor(Math.random() * group.members.length);
+                    group.leader = group.members[leaderIndex];
+                }
+            });
+        }
+
+        setGeneratedGroups(groups);
         if (showAnimation) {
             setIsAnimating(true);
-            setGeneratedGroups(groups);
-        } else {
-            setIsAnimating(false);
-            setGeneratedGroups(groups);
         }
-
-        addToast(`Genererte ${groups.length} grupper!`, 'success');
     };
 
     return (

@@ -9,10 +9,26 @@ interface StudentListProps {
 }
 
 const StudentList: React.FC<StudentListProps> = () => {
-  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones } = useApp();
+  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones, studentConstraints, setStudentConstraints } = useApp();
   const [studentInput, setStudentInput] = useState(students.join('\n'));
   const [isEditingList, setIsEditingList] = useState(false);
   const [activeStudentMenu, setActiveStudentMenu] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{top: number, right: number} | null>(null);
+
+  const openMenu = (e: React.MouseEvent, student: string) => {
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMenuPosition({
+          top: rect.bottom + 5,
+          right: window.innerWidth - rect.right
+      });
+      setActiveStudentMenu(student);
+  };
+
+  const closeMenu = () => {
+      setActiveStudentMenu(null);
+      setMenuPosition(null);
+  };
 
   const zones = canvasItems.filter(item => item.type === 'zone') as Zone[];
 
@@ -52,6 +68,28 @@ const StudentList: React.FC<StudentListProps> = () => {
       });
   };
 
+  const toggleStudentConstraint = (student: string, otherStudent: string) => {
+      const currentConstraints = studentConstraints[student] || [];
+      const otherConstraints = studentConstraints[otherStudent] || [];
+      
+      let newConstraints: string[];
+      let newOtherConstraints: string[];
+
+      if (currentConstraints.includes(otherStudent)) {
+          newConstraints = currentConstraints.filter(s => s !== otherStudent);
+          newOtherConstraints = otherConstraints.filter(s => s !== student);
+      } else {
+          newConstraints = [...currentConstraints, otherStudent];
+          newOtherConstraints = otherConstraints.includes(student) ? otherConstraints : [...otherConstraints, student];
+      }
+
+      setStudentConstraints({
+          ...studentConstraints,
+          [student]: newConstraints,
+          [otherStudent]: newOtherConstraints
+      });
+  };
+
   return (
     <div className="student-list-container">
         <div className="student-input-section">
@@ -78,75 +116,55 @@ const StudentList: React.FC<StudentListProps> = () => {
                                     onChange={() => toggleAbsent(student)}
                                     style={{ width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0 }}
                                 />
-                                <label htmlFor={`student-checkbox-${index}`} style={{ cursor: 'pointer', textDecoration: absentStudents.includes(student) ? 'line-through' : 'none', color: absentStudents.includes(student) ? '#999' : 'inherit', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <label htmlFor={`student-checkbox-${index}`} style={{ cursor: 'pointer', textDecoration: absentStudents.includes(student) ? 'line-through' : 'none', color: absentStudents.includes(student) ? '#999' : 'inherit', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0, maxWidth: '120px', marginRight: '4px' }}>
                                     {student}
                                 </label>
-                                {showZones && assignedZones.length > 0 && (
-                                    <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
-                                        {assignedZones.map(z => (
-                                            <span key={z.id} style={{ 
-                                                fontSize: '10px', 
-                                                backgroundColor: z.color, 
-                                                padding: '2px 4px', 
-                                                borderRadius: '4px',
-                                                opacity: 0.8
-                                            }}>
-                                                {z.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="hide-scrollbar" style={{ display: 'flex', gap: '4px', overflowX: 'auto', whiteSpace: 'nowrap', minWidth: 0, flex: 1, alignItems: 'center' }}>
+                                    {showZones && assignedZones.length > 0 && (
+                                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+                                            {assignedZones.map(z => (
+                                                <span key={z.id} style={{ 
+                                                    fontSize: '10px', 
+                                                    backgroundColor: z.color, 
+                                                    padding: '2px 4px', 
+                                                    borderRadius: '4px',
+                                                    opacity: 0.8,
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {z.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {showZones && (studentConstraints[student] || []).length > 0 && (
+                                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+                                            {(studentConstraints[student] || []).map(constrainedStudent => (
+                                                <span key={constrainedStudent} style={{ 
+                                                    fontSize: '10px', 
+                                                    backgroundColor: '#ffebee', 
+                                                    color: '#c62828',
+                                                    padding: '2px 4px', 
+                                                    borderRadius: '4px',
+                                                    opacity: 0.8,
+                                                    border: '1px solid #ffcdd2',
+                                                    whiteSpace: 'nowrap'
+                                                }} title={`Unngå ${constrainedStudent}`}>
+                                                    🚫 {constrainedStudent}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             
                             {showZones && (
                                 <button 
-                                    onClick={(e) => { e.stopPropagation(); setActiveStudentMenu(activeStudentMenu === student ? null : student); }}
+                                    onClick={(e) => openMenu(e, student)}
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0, width: 'auto' }}
                                     title="Velg soner"
                                 >
                                     <img src={gearIcon} alt="Gear" style={{ width: '20px', height: '20px' }} />
                                 </button>
-                            )}
-
-                            {activeStudentMenu === student && (
-                                <div style={{
-                                    position: 'absolute',
-                                    right: '0',
-                                    top: '100%',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                                    zIndex: 100,
-                                    minWidth: '150px'
-                                }}>
-                                    <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', fontWeight: 'bold', fontSize: '12px' }}>Velg soner</div>
-                                    {zones.map(zone => {
-                                        const isAssigned = assignedZoneIds.includes(zone.id);
-                                        return (
-                                            <div 
-                                                key={zone.id}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleZoneAssignment(student, zone.id);
-                                                }}
-                                                style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                                            >
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={isAssigned} 
-                                                    readOnly 
-                                                    style={{ pointerEvents: 'none' }}
-                                                />
-                                                <div style={{ width: '10px', height: '10px', backgroundColor: zone.color, borderRadius: '50%' }}></div>
-                                                {zone.name}
-                                            </div>
-                                        );
-                                    })}
-                                    {zones.length === 0 && (
-                                        <div style={{ padding: '6px 12px', color: '#999', fontSize: '12px', fontStyle: 'italic' }}>Ingen soner laget</div>
-                                    )}
-                                </div>
                             )}
                         </div>
                     )})}
@@ -162,6 +180,122 @@ const StudentList: React.FC<StudentListProps> = () => {
                 </button>
             </div>
         </div>
+
+        {activeStudentMenu && (
+            <div 
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
+                onClick={closeMenu}
+            />
+        )}
+
+        {activeStudentMenu && menuPosition && (
+            <div style={{
+                position: 'fixed',
+                top: menuPosition.top,
+                right: menuPosition.right,
+                backgroundColor: 'white',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                zIndex: 1000,
+                minWidth: '200px',
+                maxHeight: '300px',
+                overflowY: 'auto'
+            }}>
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', backgroundColor: '#f9f9f9' }}>
+                    Innstillinger for {activeStudentMenu}
+                </div>
+                
+                <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Velg soner</div>
+                {zones.map(zone => {
+                    const assignedZoneIds = studentZoneAssignments[activeStudentMenu] || [];
+                    const isAssigned = assignedZoneIds.includes(zone.id);
+                    return (
+                        <div 
+                            key={zone.id}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleZoneAssignment(activeStudentMenu, zone.id);
+                            }}
+                            style={{ padding: '6px 12px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <input 
+                                type="checkbox" 
+                                checked={isAssigned} 
+                                readOnly 
+                                style={{ pointerEvents: 'none' }}
+                            />
+                            <div style={{ width: '10px', height: '10px', backgroundColor: zone.color, borderRadius: '50%' }}></div>
+                            {zone.name}
+                        </div>
+                    );
+                })}
+                {zones.length === 0 && (
+                    <div style={{ padding: '6px 12px', color: '#999', fontSize: '12px', fontStyle: 'italic' }}>Ingen soner laget</div>
+                )}
+
+                <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', borderTop: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Grupper (unngå)</div>
+                <div style={{ padding: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                        {(studentConstraints[activeStudentMenu] || []).map(constrainedStudent => (
+                            <span key={constrainedStudent} style={{ 
+                                backgroundColor: '#ffebee', 
+                                color: '#c62828', 
+                                padding: '2px 6px', 
+                                borderRadius: '12px', 
+                                fontSize: '11px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '4px' 
+                            }}>
+                                {constrainedStudent}
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleStudentConstraint(activeStudentMenu, constrainedStudent);
+                                    }}
+                                    style={{ 
+                                        background: 'none', 
+                                        border: 'none', 
+                                        cursor: 'pointer', 
+                                        padding: 0, 
+                                        fontSize: '10px', 
+                                        color: '#c62828',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </span>
+                        ))}
+                        {(studentConstraints[activeStudentMenu] || []).length === 0 && (
+                            <span style={{ color: '#999', fontSize: '11px', fontStyle: 'italic' }}>Ingen begrensninger</span>
+                        )}
+                    </div>
+                    
+                    <select 
+                        onChange={(e) => {
+                            if (e.target.value) {
+                                toggleStudentConstraint(activeStudentMenu, e.target.value);
+                                e.target.value = ""; // Reset select
+                            }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ width: '100%', padding: '4px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
+                        defaultValue=""
+                    >
+                        <option value="" disabled>Legg til elev...</option>
+                        {students
+                            .filter(s => s !== activeStudentMenu && !(studentConstraints[activeStudentMenu] || []).includes(s))
+                            .map(s => (
+                                <option key={s} value={s}>{s}</option>
+                            ))
+                        }
+                    </select>
+                </div>
+            </div>
+        )}
     </div>
   );
 };

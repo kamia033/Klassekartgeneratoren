@@ -7,7 +7,7 @@ import '../Groups.css';
 import diceIcon from '../../../assets/dice.svg';
 
 const MapControls: React.FC = () => {
-  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, showZones, setShowZones } = useApp();
+  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, showZones, setShowZones, studentConstraints } = useApp();
   const { addToast } = useToast();
 
   const sparkleItUp = (scheme: string) => {
@@ -182,34 +182,104 @@ const MapControls: React.FC = () => {
           const assignments = new Map<string, string>(); // seatKey -> studentId
           const getSeatKey = (s: SeatLocation) => `${s.itemId}-${s.seatIndex ?? 'desk'}`;
 
+          // Helper to check constraints
+          const hasConflict = (student: string, seat: SeatLocation, currentAssignments: Map<string, string>) => {
+              const constraints = studentConstraints[student] || [];
+              if (constraints.length === 0) return false;
+
+              // Find neighbors of this seat
+              const neighbors: string[] = [];
+              
+              if (seat.seatIndex !== undefined) {
+                  // Roundtable: check other seats at same table
+                  const tableSeats = seats.filter(s => s.itemId === seat.itemId && s.seatIndex !== seat.seatIndex);
+                  tableSeats.forEach(s => {
+                      const neighborId = currentAssignments.get(getSeatKey(s));
+                      if (neighborId) neighbors.push(neighborId);
+                  });
+              } else {
+                  // Desk: check adjacent desks
+                  const currentDesk = items.find(i => i.id === seat.itemId) as Desk;
+                  if (currentDesk) {
+                      const adjacentDesks = items.filter(i => {
+                          if (i.type !== 'desk' || i.id === currentDesk.id) return false;
+                          const d = i as Desk;
+                          const dx = Math.abs(d.gridX - currentDesk.gridX);
+                          const dy = Math.abs(d.gridY - currentDesk.gridY);
+                          return dx <= 1 && dy <= 1;
+                      }) as Desk[];
+                      
+                      adjacentDesks.forEach(d => {
+                          const key = `${d.id}-desk`;
+                          const neighborId = currentAssignments.get(key);
+                          if (neighborId) neighbors.push(neighborId);
+                      });
+                  }
+              }
+
+              return neighbors.some(neighbor => 
+                  constraints.includes(neighbor) || (studentConstraints[neighbor] || []).includes(student)
+              );
+          };
+
+          // Greedy assignment with constraints
+          const assignGreedy = (studentsToAssign: string[], availableSeats: SeatLocation[]) => {
+              // Sort students by constraint count (hardest first)
+              const sortedStudents = [...studentsToAssign].sort((a, b) => {
+                  const cA = (studentConstraints[a] || []).length;
+                  const cB = (studentConstraints[b] || []).length;
+                  return cB - cA;
+              });
+
+              // Shuffle seats to ensure randomness in placement
+              const shuffledSeats = [...availableSeats].sort(() => Math.random() - 0.5);
+              
+              const unassigned: string[] = [];
+
+              sortedStudents.forEach(student => {
+                  // Find a valid seat
+                  const validSeatIndex = shuffledSeats.findIndex(seat => 
+                      !assignments.has(getSeatKey(seat)) && !hasConflict(student, seat, assignments)
+                  );
+
+                  if (validSeatIndex !== -1) {
+                      const seat = shuffledSeats[validSeatIndex];
+                      assignments.set(getSeatKey(seat), student);
+                      // Remove seat from available pool for efficiency? 
+                      // Actually we check assignments.has() so it's fine.
+                  } else {
+                      // No valid seat found (conflict-free). 
+                      // Try to find ANY empty seat
+                      const emptySeatIndex = shuffledSeats.findIndex(seat => !assignments.has(getSeatKey(seat)));
+                      if (emptySeatIndex !== -1) {
+                          const seat = shuffledSeats[emptySeatIndex];
+                          assignments.set(getSeatKey(seat), student);
+                          // addToast(`Kunne ikke oppfylle alle ønsker for ${student}`, 'warning');
+                      } else {
+                          unassigned.push(student);
+                      }
+                  }
+              });
+              return unassigned;
+          };
+
           // 1. Fill Zones
           Object.entries(zoneStudents).forEach(([zoneId, students]) => {
               const zoneSeats = seats.filter(s => s.zoneId === zoneId);
-              // Shuffle seats
-              const shuffledSeats = zoneSeats.sort(() => Math.random() - 0.5);
-              
-              students.forEach((student, i) => {
-                  if (i < shuffledSeats.length) {
-                      assignments.set(getSeatKey(shuffledSeats[i]), student);
-                  } else {
-                      // Zone overflow - add to unassigned
-                      shuffledUnassigned.push(student);
-                      addToast(`Ikke nok plass i sone for ${student}`, 'error');
-                  }
+              const leftOver = assignGreedy(students, zoneSeats);
+              leftOver.forEach(s => {
+                  shuffledUnassigned.push(s);
+                  addToast(`Ikke nok plass i sone for ${s}`, 'error');
               });
           });
 
           // 2. Fill remaining seats with unassigned students
           const usedSeats = new Set(assignments.keys());
           const remainingSeats = seats.filter(s => !usedSeats.has(getSeatKey(s)));
-          const shuffledRemainingSeats = remainingSeats.sort(() => Math.random() - 0.5);
-
-          shuffledUnassigned.forEach((student, i) => {
-              if (i < shuffledRemainingSeats.length) {
-                  assignments.set(getSeatKey(shuffledRemainingSeats[i]), student);
-              } else {
-                  addToast(`Ikke nok plass til ${student}`, 'error');
-              }
+          
+          const reallyUnassigned = assignGreedy(shuffledUnassigned, remainingSeats);
+          reallyUnassigned.forEach(s => {
+              addToast(`Ikke nok plass til ${s}`, 'error');
           });
 
           // Apply assignments to items
@@ -512,7 +582,7 @@ const MapControls: React.FC = () => {
                     onChange={(e) => setShowZones(e.target.checked)}
                     style={{ marginRight: '10px', width: '18px', height: '18px' }}
                 />
-                <span style={{ fontSize: '14px' }}>Vis soner</span>
+                <span style={{ fontSize: '14px' }}>Vis avansert</span>
             </label>
         </div>
     </>
