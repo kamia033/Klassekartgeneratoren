@@ -20,7 +20,12 @@ const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ scale, setScale, onFullsc
     return (
         <div className="canvas-toolbar">
             <div className="canvas-toolbar-scale">
-            <img src={zoomOutIcon} alt="Zoom Out" />
+            <img 
+                src={zoomOutIcon} 
+                alt="Zoom Out" 
+                onClick={() => setScale(Math.max(0.1, scale - 0.1))}
+                style={{ cursor: 'pointer' }}
+            />
             <input
                 type="range"
                 min="0.1"
@@ -29,7 +34,12 @@ const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ scale, setScale, onFullsc
                 value={scale}
                 onChange={(e) => setScale(parseFloat(e.target.value))}
             />
-            <img src={zoomInIcon} alt="Zoom In" />
+            <img 
+                src={zoomInIcon} 
+                alt="Zoom In" 
+                onClick={() => setScale(Math.min(3, scale + 0.1))}
+                style={{ cursor: 'pointer' }}
+            />
             </div>
             <div className="canvas-toolbar-exports">
 

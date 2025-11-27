@@ -23,6 +23,16 @@
   flex: 1;
 }
 
+.canvas-toolbar-scale img {
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.canvas-toolbar-scale img:hover {
+  background-color: #e0e0e0;
+}
+
 .canvas-toolbar-scale input[type="range"] {
   flex: 1;
   min-width: 50px;

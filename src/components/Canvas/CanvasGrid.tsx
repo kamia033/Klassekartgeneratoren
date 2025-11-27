@@ -26,6 +26,55 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const [scale, setScale] = useState(1);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
+  // Handle pinch-to-zoom
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current?.querySelector('div[style*="overflow: auto"]');
+    if (!canvas || !container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomSensitivity = 0.005;
+        const delta = -e.deltaY * zoomSensitivity;
+        
+        setScale(prevScale => {
+            const newScale = Math.min(Math.max(0.1, prevScale + delta), 5);
+            
+            // Calculate mouse position relative to the container content
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left + container.scrollLeft;
+            const mouseY = e.clientY - rect.top + container.scrollTop;
+
+            // Calculate the ratio of the mouse position to the current content size
+            const ratioX = mouseX / (width * prevScale);
+            const ratioY = mouseY / (height * prevScale);
+
+            // After state update, we need to adjust scroll position
+            // We can't do it here directly because the DOM hasn't updated yet.
+            // But we can use requestAnimationFrame or similar, but we don't have the new dimensions yet.
+            // Actually, we can calculate what the new scroll position SHOULD be.
+            
+            const newScrollLeft = (width * newScale) * ratioX - (e.clientX - rect.left);
+            const newScrollTop = (height * newScale) * ratioY - (e.clientY - rect.top);
+
+            requestAnimationFrame(() => {
+                container.scrollLeft = newScrollLeft;
+                container.scrollTop = newScrollTop;
+            });
+
+            return newScale;
+        });
+      }
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [width, height]);
+
   // Force redraw when showZones changes
   useEffect(() => {
     if (canvasRef.current) {
@@ -1041,8 +1090,6 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       }
   };
 
-
-
   const handleCopy = async () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -1117,11 +1164,38 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       link.click();
   };
 
+  const handleScaleChange = (newScale: number) => {
+    const container = containerRef.current?.querySelector('div[style*="overflow: auto"]');
+    if (!container) {
+        setScale(newScale);
+        return;
+    }
+
+    // Calculate center of the viewport
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2 + container.scrollLeft;
+    const centerY = rect.height / 2 + container.scrollTop;
+
+    // Calculate ratio of center to current content size
+    const ratioX = centerX / (width * scale);
+    const ratioY = centerY / (height * scale);
+
+    setScale(newScale);
+
+    // Adjust scroll position to keep center in center
+    requestAnimationFrame(() => {
+        const newScrollLeft = (width * newScale) * ratioX - rect.width / 2;
+        const newScrollTop = (height * newScale) * ratioY - rect.height / 2;
+        container.scrollLeft = newScrollLeft;
+        container.scrollTop = newScrollTop;
+    });
+  };
+
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#f0f0f0' }}>
         <CanvasToolbar 
             scale={scale} 
-            setScale={setScale} 
+            setScale={handleScaleChange} 
             onFullscreen={handleFullscreen} 
             onCopy={handleCopy} 
             onDownload={handleDownload} 
