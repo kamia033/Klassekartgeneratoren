@@ -7,7 +7,7 @@ import '../Groups.css';
 import diceIcon from '../../../assets/dice.svg';
 
 const MapControls: React.FC = () => {
-  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems } = useApp();
+  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize } = useApp();
   const { addToast } = useToast();
 
   const sparkleItUp = (scheme: string) => {
@@ -379,6 +379,18 @@ const MapControls: React.FC = () => {
                     <div key={c} className="color-button" style={{ backgroundColor: c }}></div>
                 ))}
             </div>
+        </div>
+
+        <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input 
+                    type="checkbox" 
+                    checked={uniformTextSize} 
+                    onChange={(e) => setUniformTextSize(e.target.checked)}
+                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px' }}>Samme tekststørrelse på alle</span>
+            </label>
         </div>
     </>
   );

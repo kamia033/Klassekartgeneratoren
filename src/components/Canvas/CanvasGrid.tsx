@@ -17,7 +17,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const isDeletingRef = useRef(false);
-  const { canvasItems, setCanvasItems } = useApp();
+  const { canvasItems, setCanvasItems, uniformTextSize } = useApp();
   const { addToast } = useToast();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean; gridX: number; gridY: number }>({ x: 0, y: 0, visible: false, gridX: 0, gridY: 0 });
   const [draggingItem, setDraggingItem] = useState<{ id: string; offsetX: number; offsetY: number; startX: number; startY: number } | null>(null);
@@ -41,35 +41,56 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     return brightness > 128 ? "black" : "white";
   };
 
-  const drawFittedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number, textColor: string) => {
-    let fontSize = height * 0.8;
+  const calculateMaxFontSize = (ctx: CanvasRenderingContext2D, text: string, width: number, initialFontSize: number): number => {
+      let fontSize = initialFontSize;
+      ctx.font = `${fontSize}px Arial`;
+      let measuredWidth = ctx.measureText(text).width;
+      while (measuredWidth > width * 0.9 && fontSize > 5) {
+          fontSize -= 1;
+          ctx.font = `${fontSize}px Arial`;
+          measuredWidth = ctx.measureText(text).width;
+      }
+      return fontSize;
+  };
+
+  const drawFittedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number, textColor: string, fixedFontSize?: number) => {
+    let fontSize = fixedFontSize || height * 0.8;
     ctx.font = `${fontSize}px Arial`;
     let measuredWidth = ctx.measureText(text).width;
-    while (measuredWidth > width * 0.9 && fontSize > 5) {
-      fontSize -= 1;
-      ctx.font = `${fontSize}px Arial`;
-      measuredWidth = ctx.measureText(text).width;
+    
+    if (!fixedFontSize) {
+        while (measuredWidth > width * 0.9 && fontSize > 5) {
+            fontSize -= 1;
+            ctx.font = `${fontSize}px Arial`;
+            measuredWidth = ctx.measureText(text).width;
+        }
     }
+    
     ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, x + width / 2, y + height / 2);
   };
 
-  const drawRotatedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number, angle: number, textColor: string) => {
+  const drawRotatedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number, angle: number, textColor: string, fixedFontSize?: number) => {
     const cx = x + width / 2;
     const cy = y + height / 2;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
-    let fontSize = height * 0.8;
+    
+    let fontSize = fixedFontSize || height * 0.8;
     ctx.font = `${fontSize}px Arial`;
     let measuredWidth = ctx.measureText(text).width;
-    while (measuredWidth > width * 0.9 && fontSize > 5) {
-      fontSize -= 1;
-      ctx.font = `${fontSize}px Arial`;
-      measuredWidth = ctx.measureText(text).width;
+
+    if (!fixedFontSize) {
+        while (measuredWidth > width * 0.9 && fontSize > 5) {
+            fontSize -= 1;
+            ctx.font = `${fontSize}px Arial`;
+            measuredWidth = ctx.measureText(text).width;
+        }
     }
+
     ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -86,6 +107,37 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     }
 
     const deleteIconSize = 15;
+
+    let commonFontSize: number | undefined = undefined;
+
+    if (uniformTextSize) {
+        let minSize = cellSize * 0.8; // Start with max possible size
+        
+        items.forEach(item => {
+            if (item.type === 'desk') {
+                const desk = item as Desk;
+                if (desk.studentId) {
+                    const size = calculateMaxFontSize(ctx, desk.studentId, cellSize - 4, cellSize * 0.8);
+                    if (size < minSize) minSize = size;
+                }
+            } else if (item.type === 'roundtable') {
+                const table = item as RoundTable;
+                if (table.numSeats > 0) {
+                    for (let i = 0; i < table.numSeats; i++) {
+                        if (table.studentIds[i]) {
+                            let availableWidth = cellSize * 0.8;
+                            if (table.numSeats === 4) {
+                                availableWidth = cellSize; // Rotated text has more width potentially
+                            }
+                            const size = calculateMaxFontSize(ctx, table.studentIds[i]!, availableWidth, cellSize * 0.8);
+                            if (size < minSize) minSize = size;
+                        }
+                    }
+                }
+            }
+        });
+        commonFontSize = minSize;
+    }
 
     // Draw grid
     if (showGrid) {
@@ -127,7 +179,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         
         if (desk.studentId) {
             let textColor = getContrastColor(fill);
-            drawFittedText(ctx, desk.studentId, x + 2, y + 2, cellSize - 4, cellSize - 4, textColor);
+            drawFittedText(ctx, desk.studentId, x + 2, y + 2, cellSize - 4, cellSize - 4, textColor, commonFontSize);
         }
 
         if (desk.marked && showGrid) { // Only show marked 'X' if grid is shown (edit mode)
@@ -195,9 +247,9 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
                         const angles = [-Math.PI / 4, Math.PI / 4, Math.PI / 4, -Math.PI / 4];
                         let seatX4 = tableX + (i % 2) * cellSize;
                         let seatY4 = tableY + (i < 2 ? 0 : cellSize);
-                        drawRotatedText(ctx, table.studentIds[i]!, seatX4, seatY4, cellSize, cellSize, angles[i], textColor);
+                        drawRotatedText(ctx, table.studentIds[i]!, seatX4, seatY4, cellSize, cellSize, angles[i], textColor, commonFontSize);
                     } else {
-                        drawFittedText(ctx, table.studentIds[i]!, seatX, seatY, seatRectWidth, seatRectHeight, textColor);
+                        drawFittedText(ctx, table.studentIds[i]!, seatX, seatY, seatRectWidth, seatRectHeight, textColor, commonFontSize);
                     }
                 }
                 
@@ -407,7 +459,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
     drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos, false, !isFullscreen);
 
-  }, [width, height, cellSize, canvasItems, scale, mousePos, isFullscreen]);
+  }, [width, height, cellSize, canvasItems, scale, mousePos, isFullscreen, uniformTextSize]);
 
   const getMousePos = (e: React.MouseEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();

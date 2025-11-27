@@ -29,6 +29,8 @@ interface AppContextType {
   setCurrentMapIndex: (index: number) => void;
   groupScale: number;
   setGroupScale: (scale: number) => void;
+  uniformTextSize: boolean;
+  setUniformTextSize: (uniform: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -45,6 +47,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [secondaryMapItems, setSecondaryMapItems] = useState<CanvasItem[]>([]);
   const [currentMapIndex, setCurrentMapIndex] = useState<number>(0);
   const [groupScale, setGroupScale] = useState<number>(1);
+  const [uniformTextSize, setUniformTextSize] = useState<boolean>(false);
 
   return (
     <AppContext.Provider
@@ -71,6 +74,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setCurrentMapIndex,
         groupScale,
         setGroupScale,
+        uniformTextSize,
+        setUniformTextSize,
       }}
     >
       {children}
