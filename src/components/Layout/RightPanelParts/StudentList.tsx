@@ -63,26 +63,26 @@ const StudentList: React.FC<StudentListProps> = () => {
                     onChange={handleStudentInputChange}
                 ></textarea>
             ) : (
-                <div className="student-list-with-checkboxes" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', backgroundColor: 'white' }}>
+                <div className="student-list-with-checkboxes" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', backgroundColor: 'white', width: '100%' }}>
                     {students.map((student, index) => {
                         const assignedZoneIds = studentZoneAssignments ? (studentZoneAssignments[student] || []) : [];
                         const assignedZones = zones.filter(z => assignedZoneIds.includes(z.id));
                         
                         return (
-                        <div key={index} className="checkbox-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', position: 'relative' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                        <div id={`student-item-${index}`} key={index}  className="checkbox-item-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', position: 'relative', width: '100%' }}>
+                            <div className="checkbox-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
                                 <input 
                                     type="checkbox" 
                                     id={`student-checkbox-${index}`}
                                     checked={!absentStudents.includes(student)}
                                     onChange={() => toggleAbsent(student)}
-                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                    style={{ width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0 }}
                                 />
-                                <label htmlFor={`student-checkbox-${index}`} style={{ cursor: 'pointer', textDecoration: absentStudents.includes(student) ? 'line-through' : 'none', color: absentStudents.includes(student) ? '#999' : 'inherit' }}>
+                                <label htmlFor={`student-checkbox-${index}`} style={{ cursor: 'pointer', textDecoration: absentStudents.includes(student) ? 'line-through' : 'none', color: absentStudents.includes(student) ? '#999' : 'inherit', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     {student}
                                 </label>
                                 {showZones && assignedZones.length > 0 && (
-                                    <div style={{ display: 'flex', gap: '2px' }}>
+                                    <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
                                         {assignedZones.map(z => (
                                             <span key={z.id} style={{ 
                                                 fontSize: '10px', 
@@ -101,10 +101,10 @@ const StudentList: React.FC<StudentListProps> = () => {
                             {showZones && (
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); setActiveStudentMenu(activeStudentMenu === student ? null : student); }}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 4px', marginLeft: 'auto' }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0, width: 'auto' }}
                                     title="Velg soner"
                                 >
-                                    ⚙️
+                                    <img src={gearIcon} alt="Gear" style={{ width: '20px', height: '20px' }} />
                                 </button>
                             )}
 

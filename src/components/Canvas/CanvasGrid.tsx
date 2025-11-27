@@ -26,6 +26,16 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const [scale, setScale] = useState(1);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
+  // Force redraw when showZones changes
+  useEffect(() => {
+    if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+            drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos);
+        }
+    }
+  }, [showZones, canvasItems, mousePos, width, height, cellSize]);
+
   const gridColor = "#E0E0E0";
   const deskColor = "#FF0000";
   const borderColor = "#424242";

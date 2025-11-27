@@ -16,13 +16,16 @@
   max-height: 200px;
   overflow-y: auto;
   font-family: 'Inter', Arial, sans-serif;
+  box-sizing: border-box;
 }
 
 .checkbox-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   padding: 4px 0;
+  
 }
 
 .checkbox-item:last-child {
@@ -83,3 +86,9 @@ textarea {
   border-radius: 4px;
   resize: vertical;
 }
+
+.checkbox-item-container {
+  width:100% !important;
+
+}
+      
