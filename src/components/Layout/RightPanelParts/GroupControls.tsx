@@ -158,6 +158,11 @@ const GroupControls: React.FC = () => {
              groups[0].members.push(student);
         });
 
+        // Shuffle members within each group to avoid constrained students always being first
+        groups.forEach(group => {
+            group.members.sort(() => Math.random() - 0.5);
+        });
+
         if (selectLeaders) {
             groups.forEach(group => {
                 if (group.members.length > 0) {
@@ -175,7 +180,7 @@ const GroupControls: React.FC = () => {
 
     return (
         <div className="save-section">
-            <button id="generateButton" onClick={generateGroups} >
+            <button id="generateButton" onClick={generateGroups} style={{ marginBottom: '10px' }}>
                 <div>
                     <img src={diceIcon} style={{ height: '30px', width: '30px' }} alt="Dice" />
                     <span>Generer grupper</span>

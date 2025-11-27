@@ -13,8 +13,12 @@ import './Colors.css';
 import groupIcon from '../../assets/group.svg';
 import pinicon from '../../assets/pin.svg';
 
-const RightPanel: React.FC = () => {
-  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, setShowZones } = useApp();
+interface RightPanelProps {
+    onTriggerError?: () => void;
+}
+
+const RightPanel: React.FC<RightPanelProps> = () => {
+  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, showZones, setShowZones } = useApp();
   const { addToast } = useToast();
   const [savedClasses, setSavedClasses] = useState<string[]>([]);
 
@@ -108,7 +112,7 @@ const RightPanel: React.FC = () => {
                 id="klassekart-btn" 
                 className={activeTab === 'kart' ? 'active-tab' : ''}
                 onClick={() => setActiveTab('kart')}
-            >   <img src={pinicon} style={{ height: '30px', width: '30px', marginBottom:"2px" }} alt="Pin" />
+            >   <img src={pinicon} style={{ height: '30px', width: '30px' }} alt="Pin" />
                 <span>Kart</span>
             </button>
             <button 
@@ -116,7 +120,7 @@ const RightPanel: React.FC = () => {
                 className={activeTab === 'grupper' ? 'active-tab' : ''}
                 onClick={() => setActiveTab('grupper')}
             >
-                <img src={groupIcon} style={{ height: '30px', width: '30px', marginBottom:"2px" }} alt="Group" />
+                <img src={groupIcon} style={{ height: '30px', width: '30px' }} alt="Group" />
                 <span>Grupper</span>
             </button>
           </div>
@@ -142,6 +146,18 @@ const RightPanel: React.FC = () => {
 
         {activeTab === 'kart' && <MapControls />}
         {activeTab === 'grupper' && <GroupControls />}
+
+        <div style={{ margin: '10px 0', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input 
+                    type="checkbox" 
+                    checked={showZones} 
+                    onChange={(e) => setShowZones(e.target.checked)}
+                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px' }}>Vis avansert</span>
+            </label>
+        </div>
         
       </div>
     </div>

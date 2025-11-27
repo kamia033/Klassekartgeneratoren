@@ -93,10 +93,7 @@ const MapControls: React.FC = () => {
       const seatsMap1 = getAvailableSeats(canvasItems);
       const seatsMap2 = getAvailableSeats(secondaryMapItems);
       
-      if (seatsMap1 < presentStudents.length) {
-          addToast(`Advarsel: Kart 1 mangler ${presentStudents.length - seatsMap1} plasser!`, 'error');
-      }
-      if (seatsMap2 < presentStudents.length) {
+      if (seatsMap2 > 0 && seatsMap2 < presentStudents.length) {
           addToast(`Advarsel: Kart 2 mangler ${presentStudents.length - seatsMap2} plasser!`, 'error');
       }
 
@@ -105,11 +102,38 @@ const MapControls: React.FC = () => {
           const cellSize = 40;
           const zones = items.filter(i => i.type === 'zone') as Zone[];
           
+          // Pre-process locked students
+          const assignments = new Map<string, string>(); // seatKey -> studentId
+          const lockedStudents = new Set<string>();
+
+          items.forEach(item => {
+              if (item.type === 'desk') {
+                  const desk = item as Desk;
+                  if (desk.locked && desk.studentId && allStudents.includes(desk.studentId)) {
+                      assignments.set(`${desk.id}-desk`, desk.studentId);
+                      lockedStudents.add(desk.studentId);
+                  }
+              } else if (item.type === 'roundtable') {
+                  const rt = item as RoundTable;
+                  if (rt.lockedSeats) {
+                      rt.lockedSeats.forEach((locked, idx) => {
+                          const sId = rt.studentIds[idx];
+                          if (locked && sId && allStudents.includes(sId)) {
+                              assignments.set(`${rt.id}-${idx}`, sId);
+                              lockedStudents.add(sId);
+                          }
+                      });
+                  }
+              }
+          });
+
+          const studentsToAssign = allStudents.filter(s => !lockedStudents.has(s));
+
           // Map students to zones
           const zoneStudents: Record<string, string[]> = {};
           const unassignedStudents: string[] = [];
 
-          allStudents.forEach(s => {
+          studentsToAssign.forEach(s => {
               const assignedZoneIds = studentZoneAssignments ? (studentZoneAssignments[s] || []) : [];
               // Filter out invalid zones
               const validZoneIds = assignedZoneIds.filter(id => zones.some(z => z.id === id));
@@ -179,7 +203,7 @@ const MapControls: React.FC = () => {
           });
 
           // Assign students to seats
-          const assignments = new Map<string, string>(); // seatKey -> studentId
+          // assignments map is already initialized and pre-filled with locked students
           const getSeatKey = (s: SeatLocation) => `${s.itemId}-${s.seatIndex ?? 'desk'}`;
 
           // Helper to check constraints
@@ -267,10 +291,12 @@ const MapControls: React.FC = () => {
           Object.entries(zoneStudents).forEach(([zoneId, students]) => {
               const zoneSeats = seats.filter(s => s.zoneId === zoneId);
               const leftOver = assignGreedy(students, zoneSeats);
-              leftOver.forEach(s => {
-                  shuffledUnassigned.push(s);
-                  addToast(`Ikke nok plass i sone for ${s}`, 'error');
-              });
+              
+              if (leftOver.length > 0) {
+                  const zoneName = zones.find(z => z.id === zoneId)?.name || 'Ukjent sone';
+                  addToast(`${leftOver.length} elever fikk ikke plass i ${zoneName}`, 'error');
+                  leftOver.forEach(s => shuffledUnassigned.push(s));
+              }
           });
 
           // 2. Fill remaining seats with unassigned students
@@ -278,9 +304,10 @@ const MapControls: React.FC = () => {
           const remainingSeats = seats.filter(s => !usedSeats.has(getSeatKey(s)));
           
           const reallyUnassigned = assignGreedy(shuffledUnassigned, remainingSeats);
-          reallyUnassigned.forEach(s => {
-              addToast(`Ikke nok plass til ${s}`, 'error');
-          });
+          
+          if (reallyUnassigned.length > 0) {
+              addToast(`${reallyUnassigned.length} elever fikk ikke plass på kartet`, 'error');
+          }
 
           // Apply assignments to items
           return items.map(item => {
@@ -481,10 +508,16 @@ const MapControls: React.FC = () => {
 
       setSecondaryMapItems(finalMap2Items);
 
-      if (splitGroups > 0) {
-          addToast(`Advarsel: ${splitGroups} grupper måtte splittes i Kart 2.`, 'info');
-      } else {
-          addToast('Elever plassert! Grupperinger bevart.', 'success');
+      // Check if Map 2 actually has any seats
+      const map2HasSeats = secondaryMapItems.some(item => 
+          (item.type === 'desk' && !(item as Desk).marked) || 
+          (item.type === 'roundtable' && (item as RoundTable).markedSeats.some(m => !m))
+      );
+
+      if (map2HasSeats) {
+          if (splitGroups > 0) {
+              addToast(`Advarsel: ${splitGroups} grupper måtte splittes i Kart 2.`, 'info');
+          }
       }
   };
 
@@ -574,15 +607,6 @@ const MapControls: React.FC = () => {
                     style={{ marginRight: '10px', width: '18px', height: '18px' }}
                 />
                 <span style={{ fontSize: '14px' }}>Samme tekststørrelse på alle</span>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <input 
-                    type="checkbox" 
-                    checked={showZones} 
-                    onChange={(e) => setShowZones(e.target.checked)}
-                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
-                />
-                <span style={{ fontSize: '14px' }}>Vis avansert</span>
             </label>
         </div>
     </>

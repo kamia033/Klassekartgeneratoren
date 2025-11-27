@@ -39,7 +39,18 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         const delta = -e.deltaY * zoomSensitivity;
         
         setScale(prevScale => {
-            const newScale = Math.min(Math.max(0.1, prevScale + delta), 5);
+            // Calculate min scale to fit grid in container
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const minScaleX = containerWidth / width;
+            const minScaleY = containerHeight / height;
+            
+            // Use MAX to ensure we cover the viewport (no void visible)
+            // "aldri kan gå utenfor rutenettets størrelse" -> never go outside grid size.
+            // Interpreted as: never show the area outside the grid.
+            const minScale = Math.max(minScaleX, minScaleY);
+
+            const newScale = Math.min(Math.max(minScale, prevScale + delta), 5);
             
             // Calculate mouse position relative to the container content
             const rect = container.getBoundingClientRect();
@@ -51,10 +62,6 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             const ratioY = mouseY / (height * prevScale);
 
             // After state update, we need to adjust scroll position
-            // We can't do it here directly because the DOM hasn't updated yet.
-            // But we can use requestAnimationFrame or similar, but we don't have the new dimensions yet.
-            // Actually, we can calculate what the new scroll position SHOULD be.
-            
             const newScrollLeft = (width * newScale) * ratioX - (e.clientX - rect.left);
             const newScrollTop = (height * newScale) * ratioY - (e.clientY - rect.top);
 
@@ -105,11 +112,11 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
   const calculateMaxFontSize = (ctx: CanvasRenderingContext2D, text: string, width: number, initialFontSize: number): number => {
       let fontSize = initialFontSize;
-      ctx.font = `${fontSize}px Arial`;
+      ctx.font = `${fontSize}px Verdana`;
       let measuredWidth = ctx.measureText(text).width;
-      while (measuredWidth > width * 0.9 && fontSize > 5) {
+      while (measuredWidth > width * 0.95 && fontSize > 5) {
           fontSize -= 1;
-          ctx.font = `${fontSize}px Arial`;
+          ctx.font = `${fontSize}px Verdana`;
           measuredWidth = ctx.measureText(text).width;
       }
       return fontSize;
@@ -117,13 +124,13 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
   const drawFittedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number, textColor: string, fixedFontSize?: number) => {
     let fontSize = fixedFontSize || height * 0.8;
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${fontSize}px Verdana`;
     let measuredWidth = ctx.measureText(text).width;
     
     if (!fixedFontSize) {
-        while (measuredWidth > width * 0.9 && fontSize > 5) {
+        while (measuredWidth > width * 0.95 && fontSize > 5) {
             fontSize -= 1;
-            ctx.font = `${fontSize}px Arial`;
+            ctx.font = `${fontSize}px Verdana`;
             measuredWidth = ctx.measureText(text).width;
         }
     }
@@ -142,13 +149,13 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     ctx.rotate(angle);
     
     let fontSize = fixedFontSize || height * 0.8;
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${fontSize}px Verdana`;
     let measuredWidth = ctx.measureText(text).width;
 
     if (!fixedFontSize) {
-        while (measuredWidth > width * 0.9 && fontSize > 5) {
+        while (measuredWidth > width * 0.95 && fontSize > 5) {
             fontSize -= 1;
-            ctx.font = `${fontSize}px Arial`;
+            ctx.font = `${fontSize}px Verdana`;
             measuredWidth = ctx.measureText(text).width;
         }
     }
@@ -177,7 +184,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             if (item.type === 'desk') {
                 const desk = item as Desk;
                 if (desk.studentId) {
-                    const size = calculateMaxFontSize(ctx, desk.studentId, cellSize - 4, cellSize * 0.8);
+                    const size = calculateMaxFontSize(ctx, desk.studentId, cellSize - 2, cellSize * 0.8);
                     if (size < minSize) minSize = size;
                 }
             } else if (item.type === 'roundtable') {
@@ -247,7 +254,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
           // Draw zone name
           ctx.fillStyle = 'black';
-          ctx.font = 'bold 16px Arial';
+          ctx.font = 'bold 16px Verdana';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'top';
           ctx.fillText(zone.name, zone.x + 5, zone.y + 5);
@@ -268,7 +275,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
               ctx.fillStyle = 'red';
               ctx.fillRect(zone.x + zone.width - deleteIconSize, zone.y, deleteIconSize, deleteIconSize);
               ctx.fillStyle = 'white';
-              ctx.font = 'bold 14px Arial';
+              ctx.font = 'bold 14px Verdana';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText('x', zone.x + zone.width - deleteIconSize / 2, zone.y + deleteIconSize / 2);
@@ -285,9 +292,10 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         ctx.lineWidth = 1;
         ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
         
-        if (desk.studentId) {
+        if (desk.studentId && !desk.marked) {
             let textColor = getContrastColor(fill);
-            drawFittedText(ctx, desk.studentId, x + 2, y + 2, cellSize - 4, cellSize - 4, textColor, commonFontSize);
+            const padding = uniformTextSize ? 1 : 3;
+            drawFittedText(ctx, desk.studentId, x + padding, y + padding, cellSize - (padding * 2), cellSize - (padding * 2), textColor, commonFontSize);
         }
 
         if (desk.marked && showGrid) { // Only show marked 'X' if grid is shown (edit mode)
@@ -308,7 +316,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             ctx.fillStyle = 'red';
             ctx.fillRect(x + cellSize - deleteIconSize, y, deleteIconSize, deleteIconSize);
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 14px Verdana';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('x', x + cellSize - deleteIconSize / 2, y + deleteIconSize / 2);
@@ -349,7 +357,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
                 let seatX = seatCenterX - seatRectWidth / 2;
                 let seatY = seatCenterY - seatRectHeight / 2;
 
-                if (table.studentIds[i]) {
+                if (table.studentIds[i] && !table.markedSeats[i]) {
                     let textColor = getContrastColor(tableColor);
                     if (table.numSeats === 4) {
                         const angles = [-Math.PI / 4, Math.PI / 4, Math.PI / 4, -Math.PI / 4];
@@ -497,25 +505,47 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
+  // Ensure scale is valid when entering fullscreen or resizing
+  useEffect(() => {
+      const container = containerRef.current?.querySelector('div[style*="overflow: auto"]');
+      if (!container) return;
+      
+      const updateScale = () => {
+          const containerWidth = container.clientWidth;
+          const containerHeight = container.clientHeight;
+          if (containerWidth === 0 || containerHeight === 0) return;
+
+          const minScaleX = containerWidth / width;
+          const minScaleY = containerHeight / height;
+          // Ensure we cover the viewport
+          const minScale = Math.max(minScaleX, minScaleY);
+          
+          setScale(prev => {
+              if (prev < minScale) return minScale;
+              return prev;
+          });
+      };
+      
+      // Small delay to ensure DOM is updated after fullscreen change
+      const timeout = setTimeout(updateScale, 100);
+      window.addEventListener('resize', updateScale);
+      return () => {
+          window.removeEventListener('resize', updateScale);
+          clearTimeout(timeout);
+      };
+  }, [isFullscreen, width, height]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let targetWidth = width;
-    let targetHeight = height;
+    // Always use scaled size for the canvas element
+    // The container handles the viewport/scrolling
+    const targetWidth = width * scale;
+    const targetHeight = height * scale;
     
-    if (isFullscreen) {
-        targetWidth = window.innerWidth;
-        targetHeight = window.innerHeight;
-    } else {
-        // In normal mode, we want the canvas to be large enough to hold the scaled content
-        // to avoid clipping and ensure high quality rendering.
-        targetWidth = width * scale;
-        targetHeight = height * scale;
-    }
-
     // High DPI support
     const dpr = window.devicePixelRatio || 1;
     
@@ -530,40 +560,9 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Apply scale for DPI
+    // Apply scale for DPI and Zoom
     ctx.scale(dpr, dpr);
-
-    if (isFullscreen) {
-        const box = getBoundingBox();
-        // Add some padding around the content in fullscreen
-        const padding = 40; 
-        const contentWidth = box.width + padding * 2;
-        const contentHeight = box.height + padding * 2;
-        
-        // Calculate scale to fit content into targetWidth/Height
-        const scaleX = targetWidth / contentWidth;
-        const scaleY = targetHeight / contentHeight;
-        const fitScale = Math.min(scaleX, scaleY);
-        
-        // Calculate centering offset
-        const boxCenterX = box.x + box.width / 2;
-        const boxCenterY = box.y + box.height / 2;
-        
-        const screenCenterX = targetWidth / 2;
-        const screenCenterY = targetHeight / 2;
-        
-        // Translate to center of screen
-        ctx.translate(screenCenterX, screenCenterY);
-        // Scale
-        ctx.scale(fitScale, fitScale);
-        // Translate back from box center
-        ctx.translate(-boxCenterX, -boxCenterY);
-        
-    } else {
-        // Normal mode
-        // Use the user defined scale
-        ctx.scale(scale, scale);
-    }
+    ctx.scale(scale, scale);
 
     drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos, false, !isFullscreen);
 
@@ -909,6 +908,18 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       );
       
       if (clickedLabel) return;
+
+      // Check if click is on a zone name (to prevent desk creation when trying to rename/interact with zone header)
+      const clickedZoneName = canvasItems.find(item => {
+          if (item.type !== 'zone') return false;
+          if (!showZones) return false;
+          const zone = item as Zone;
+          // Approximate name area at top-left of zone
+          return pos.x >= zone.x && pos.x <= zone.x + 150 &&
+                 pos.y >= zone.y && pos.y <= zone.y + 30;
+      });
+
+      if (clickedZoneName) return;
 
       // Check if space is occupied
       const isOccupied = canvasItems.some(item => {

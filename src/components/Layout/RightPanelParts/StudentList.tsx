@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
-import type { Zone } from '../../../types';
+import type { Zone, Desk, RoundTable } from '../../../types';
 import './StudentList.css';
 import gearIcon from '../../../assets/gear.svg'; // Assuming you have a gear icon or I can use a unicode char for now
 
@@ -9,7 +9,7 @@ interface StudentListProps {
 }
 
 const StudentList: React.FC<StudentListProps> = () => {
-  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones, studentConstraints, setStudentConstraints } = useApp();
+  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, setCanvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones, studentConstraints, setStudentConstraints } = useApp();
   const [studentInput, setStudentInput] = useState(students.join('\n'));
   const [isEditingList, setIsEditingList] = useState(false);
   const [activeStudentMenu, setActiveStudentMenu] = useState<string | null>(null);
@@ -90,6 +90,52 @@ const StudentList: React.FC<StudentListProps> = () => {
       });
   };
 
+  const toggleStudentLock = (student: string) => {
+      const newItems = canvasItems.map(item => {
+          if (item.type === 'desk') {
+              const desk = item as Desk;
+              if (desk.studentId === student) {
+                  return { ...desk, locked: !desk.locked };
+              }
+          } else if (item.type === 'roundtable') {
+              const table = item as RoundTable;
+              const seatIndex = table.studentIds.indexOf(student);
+              if (seatIndex !== -1) {
+                  const newLockedSeats = table.lockedSeats ? [...table.lockedSeats] : new Array(table.numSeats).fill(false);
+                  newLockedSeats[seatIndex] = !newLockedSeats[seatIndex];
+                  return { ...table, lockedSeats: newLockedSeats };
+              }
+          }
+          return item;
+      });
+      setCanvasItems(newItems);
+  };
+
+  const isStudentLocked = (student: string) => {
+      for (const item of canvasItems) {
+          if (item.type === 'desk') {
+              const desk = item as Desk;
+              if (desk.studentId === student && desk.locked) return true;
+          } else if (item.type === 'roundtable') {
+              const table = item as RoundTable;
+              const seatIndex = table.studentIds.indexOf(student);
+              if (seatIndex !== -1 && table.lockedSeats && table.lockedSeats[seatIndex]) return true;
+          }
+      }
+      return false;
+  };
+
+  const isStudentSeated = (student: string) => {
+      for (const item of canvasItems) {
+          if (item.type === 'desk') {
+              if ((item as Desk).studentId === student) return true;
+          } else if (item.type === 'roundtable') {
+              if ((item as RoundTable).studentIds.includes(student)) return true;
+          }
+      }
+      return false;
+  };
+
   return (
     <div className="student-list-container">
         <div className="student-input-section">
@@ -120,6 +166,11 @@ const StudentList: React.FC<StudentListProps> = () => {
                                     {student}
                                 </label>
                                 <div className="hide-scrollbar" style={{ display: 'flex', gap: '4px', overflowX: 'auto', whiteSpace: 'nowrap', minWidth: 0, flex: 1, alignItems: 'center' }}>
+                                    {showZones && isStudentLocked(student) && (
+                                        <span style={{ fontSize: '12px', marginRight: '2px', flexShrink: 0 }} title="Låst til plass">
+                                            🔒
+                                        </span>
+                                    )}
                                     {showZones && assignedZones.length > 0 && (
                                         <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
                                             {assignedZones.map(z => (
@@ -205,6 +256,24 @@ const StudentList: React.FC<StudentListProps> = () => {
                 <div style={{ padding: '8px 12px', borderBottom: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', backgroundColor: '#f9f9f9' }}>
                     Innstillinger for {activeStudentMenu}
                 </div>
+
+                {isStudentSeated(activeStudentMenu) && (
+                    <div 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStudentLock(activeStudentMenu);
+                        }}
+                        style={{ padding: '8px 12px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #eee' }}
+                    >
+                        <input 
+                            type="checkbox" 
+                            checked={isStudentLocked(activeStudentMenu)} 
+                            readOnly 
+                            style={{ pointerEvents: 'none' }}
+                        />
+                        Lås til nåværende plass
+                    </div>
+                )}
                 
                 <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Velg soner</div>
                 {zones.map(zone => {
@@ -234,7 +303,7 @@ const StudentList: React.FC<StudentListProps> = () => {
                     <div style={{ padding: '6px 12px', color: '#999', fontSize: '12px', fontStyle: 'italic' }}>Ingen soner laget</div>
                 )}
 
-                <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', borderTop: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Grupper (unngå)</div>
+                <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', borderTop: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Unngå</div>
                 <div style={{ padding: '8px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
                         {(studentConstraints[activeStudentMenu] || []).map(constrainedStudent => (

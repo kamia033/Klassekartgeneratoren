@@ -19,6 +19,7 @@ export type Desk = GridPosition & {
   studentId: string | null;
   color: string | null;
   marked: boolean;
+  locked?: boolean;
 };
 
 export type RoundTable = GridPosition & {
@@ -28,6 +29,7 @@ export type RoundTable = GridPosition & {
   studentIds: (string | null)[];
   markedSeats: boolean[];
   color: string | null;
+  lockedSeats?: boolean[];
 };
 
 export type Blackboard = Position & {
