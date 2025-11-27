@@ -48,7 +48,16 @@ export type Label = Position & {
   color?: string;
 };
 
-export type CanvasItem = Desk | RoundTable | Blackboard | Label;
+export type Zone = Position & {
+  id: string;
+  type: 'zone';
+  width: number;
+  height: number;
+  name: string;
+  color: string;
+};
+
+export type CanvasItem = Desk | RoundTable | Blackboard | Label | Zone;
 
 export type ClassData = {
   name: string;

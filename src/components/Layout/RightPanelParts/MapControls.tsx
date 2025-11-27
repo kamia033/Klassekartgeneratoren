@@ -1,13 +1,13 @@
 import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
-import type { Desk, RoundTable } from '../../../types';
+import type { Desk, RoundTable, Zone } from '../../../types';
 import '../Colors.css';
 import '../Groups.css';
 import diceIcon from '../../../assets/dice.svg';
 
 const MapControls: React.FC = () => {
-  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize } = useApp();
+  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, showZones, setShowZones } = useApp();
   const { addToast } = useToast();
 
   const sparkleItUp = (scheme: string) => {
@@ -74,7 +74,6 @@ const MapControls: React.FC = () => {
 
   const assignStudents = () => {
       const presentStudents = students.filter(s => !absentStudents.includes(s));
-      const shuffledStudents = [...presentStudents].sort(() => Math.random() - 0.5);
       
       // Helper to get available seats count
       const getAvailableSeats = (items: typeof canvasItems) => {
@@ -94,34 +93,149 @@ const MapControls: React.FC = () => {
       const seatsMap1 = getAvailableSeats(canvasItems);
       const seatsMap2 = getAvailableSeats(secondaryMapItems);
       
-      if (seatsMap1 < shuffledStudents.length) {
-          addToast(`Advarsel: Kart 1 mangler ${shuffledStudents.length - seatsMap1} plasser!`, 'error');
+      if (seatsMap1 < presentStudents.length) {
+          addToast(`Advarsel: Kart 1 mangler ${presentStudents.length - seatsMap1} plasser!`, 'error');
       }
-      if (seatsMap2 < shuffledStudents.length) {
-          addToast(`Advarsel: Kart 2 mangler ${shuffledStudents.length - seatsMap2} plasser!`, 'error');
+      if (seatsMap2 < presentStudents.length) {
+          addToast(`Advarsel: Kart 2 mangler ${presentStudents.length - seatsMap2} plasser!`, 'error');
       }
 
-      // 1. Assign to Map 1 (Randomly)
-      const assignToMapRandomly = (items: typeof canvasItems, studentList: string[]) => {
-          let studentIndex = 0;
-          return items.map(item => {
+      // 1. Assign to Map 1 (With Zones)
+      const assignToMapWithZones = (items: typeof canvasItems, allStudents: string[]) => {
+          const cellSize = 40;
+          const zones = items.filter(i => i.type === 'zone') as Zone[];
+          
+          // Map students to zones
+          const zoneStudents: Record<string, string[]> = {};
+          const unassignedStudents: string[] = [];
+
+          allStudents.forEach(s => {
+              const assignedZoneIds = studentZoneAssignments ? (studentZoneAssignments[s] || []) : [];
+              // Filter out invalid zones
+              const validZoneIds = assignedZoneIds.filter(id => zones.some(z => z.id === id));
+              
+              if (validZoneIds.length > 0) {
+                  // If student has multiple zones, pick one randomly for this placement
+                  const randomZoneId = validZoneIds[Math.floor(Math.random() * validZoneIds.length)];
+                  if (!zoneStudents[randomZoneId]) zoneStudents[randomZoneId] = [];
+                  zoneStudents[randomZoneId].push(s);
+              } else {
+                  unassignedStudents.push(s);
+              }
+          });
+
+          // Shuffle all lists
+          Object.keys(zoneStudents).forEach(k => {
+              zoneStudents[k] = zoneStudents[k].sort(() => Math.random() - 0.5);
+          });
+          const shuffledUnassigned = unassignedStudents.sort(() => Math.random() - 0.5);
+
+          // Identify seats and their zones
+          type SeatLocation = {
+              itemId: string;
+              seatIndex?: number; // for roundtables
+              zoneId: string | null;
+          };
+
+          const seats: SeatLocation[] = [];
+
+          items.forEach(item => {
               if (item.type === 'desk') {
                   const desk = item as Desk;
-                  if (desk.marked) return { ...desk, studentId: null };
-                  return { ...desk, studentId: studentList[studentIndex++] || null };
+                  if (!desk.marked) {
+                      // Check if desk is in a zone
+                      const deskX = desk.gridX * cellSize;
+                      const deskY = desk.gridY * cellSize;
+                      // Center of desk
+                      const cx = deskX + cellSize / 2;
+                      const cy = deskY + cellSize / 2;
+
+                      const zone = zones.find(z => 
+                          cx >= z.x && cx <= z.x + z.width &&
+                          cy >= z.y && cy <= z.y + z.height
+                      );
+                      
+                      seats.push({ itemId: desk.id, zoneId: zone ? zone.id : null });
+                  }
               } else if (item.type === 'roundtable') {
-                  const t = item as RoundTable;
-                  const newIds = t.studentIds.map((_, i) => {
-                      if (t.markedSeats[i]) return null;
-                      return studentList[studentIndex++] || null;
+                  const rt = item as RoundTable;
+                  // Check if roundtable is in a zone (center of table)
+                  const rtX = rt.gridX * cellSize;
+                  const rtY = rt.gridY * cellSize;
+                  const cx = rtX + cellSize; // 2x2 grid, so center is +1 cell
+                  const cy = rtY + cellSize;
+
+                  const zone = zones.find(z => 
+                      cx >= z.x && cx <= z.x + z.width &&
+                      cy >= z.y && cy <= z.y + z.height
+                  );
+
+                  rt.markedSeats.forEach((marked, idx) => {
+                      if (!marked) {
+                          seats.push({ itemId: rt.id, seatIndex: idx, zoneId: zone ? zone.id : null });
+                      }
                   });
-                  return { ...t, studentIds: newIds };
+              }
+          });
+
+          // Assign students to seats
+          const assignments = new Map<string, string>(); // seatKey -> studentId
+          const getSeatKey = (s: SeatLocation) => `${s.itemId}-${s.seatIndex ?? 'desk'}`;
+
+          // 1. Fill Zones
+          Object.entries(zoneStudents).forEach(([zoneId, students]) => {
+              const zoneSeats = seats.filter(s => s.zoneId === zoneId);
+              // Shuffle seats
+              const shuffledSeats = zoneSeats.sort(() => Math.random() - 0.5);
+              
+              students.forEach((student, i) => {
+                  if (i < shuffledSeats.length) {
+                      assignments.set(getSeatKey(shuffledSeats[i]), student);
+                  } else {
+                      // Zone overflow - add to unassigned
+                      shuffledUnassigned.push(student);
+                      addToast(`Ikke nok plass i sone for ${student}`, 'error');
+                  }
+              });
+          });
+
+          // 2. Fill remaining seats with unassigned students
+          const usedSeats = new Set(assignments.keys());
+          const remainingSeats = seats.filter(s => !usedSeats.has(getSeatKey(s)));
+          const shuffledRemainingSeats = remainingSeats.sort(() => Math.random() - 0.5);
+
+          shuffledUnassigned.forEach((student, i) => {
+              if (i < shuffledRemainingSeats.length) {
+                  assignments.set(getSeatKey(shuffledRemainingSeats[i]), student);
+              } else {
+                  addToast(`Ikke nok plass til ${student}`, 'error');
+              }
+          });
+
+          // Apply assignments to items
+          return items.map(item => {
+              if (item.type === 'desk') {
+                  const key = `${item.id}-desk`;
+                  if (assignments.has(key)) {
+                      return { ...item, studentId: assignments.get(key) || null };
+                  } else if (!(item as Desk).marked) {
+                      return { ...item, studentId: null };
+                  }
+                  return item;
+              } else if (item.type === 'roundtable') {
+                  const rt = item as RoundTable;
+                  const finalIds = rt.studentIds.map((_, idx) => {
+                      if (rt.markedSeats[idx]) return null;
+                      const key = `${item.id}-${idx}`;
+                      return assignments.get(key) || null;
+                  });
+                  return { ...rt, studentIds: finalIds };
               }
               return item;
           });
       };
 
-      const newCanvasItems = assignToMapRandomly(canvasItems, shuffledStudents);
+      const newCanvasItems = assignToMapWithZones(canvasItems, presentStudents);
       setCanvasItems(newCanvasItems);
 
       // 2. Extract Groups from Map 1
@@ -382,7 +496,7 @@ const MapControls: React.FC = () => {
         </div>
 
         <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '8px' }}>
                 <input 
                     type="checkbox" 
                     checked={uniformTextSize} 
@@ -390,6 +504,15 @@ const MapControls: React.FC = () => {
                     style={{ marginRight: '10px', width: '18px', height: '18px' }}
                 />
                 <span style={{ fontSize: '14px' }}>Samme tekststørrelse på alle</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input 
+                    type="checkbox" 
+                    checked={showZones} 
+                    onChange={(e) => setShowZones(e.target.checked)}
+                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px' }}>Vis soner</span>
             </label>
         </div>
     </>

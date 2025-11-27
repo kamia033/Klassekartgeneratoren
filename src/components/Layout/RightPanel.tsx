@@ -14,7 +14,7 @@ import groupIcon from '../../assets/group.svg';
 import pinicon from '../../assets/pin.svg';
 
 const RightPanel: React.FC = () => {
-  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode } = useApp();
+  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, setShowZones } = useApp();
   const { addToast } = useToast();
   const [savedClasses, setSavedClasses] = useState<string[]>([]);
 
@@ -29,7 +29,9 @@ const RightPanel: React.FC = () => {
           setStudents(classes[className].students || []);
           setCanvasItems(classes[className].canvasItems || []);
           setSecondaryMapItems(classes[className].canvasItems2 || []);
+          setStudentZoneAssignments(classes[className].studentZoneAssignments || {});
           setCurrentClass(className);
+          setShowZones(false);
           addToast(`Lastet klasse: ${className}`, 'success');
       }
   };
@@ -42,13 +44,15 @@ const RightPanel: React.FC = () => {
               alert('En klasse med dette navnet finnes allerede!');
               return;
           }
-          classes[name] = { students: [], canvasItems: [] };
+          classes[name] = { students: [], canvasItems: [], studentZoneAssignments: {} };
           localStorage.setItem('classes', JSON.stringify(classes));
           setSavedClasses(Object.keys(classes));
           setCurrentClass(name);
           setStudents([]);
           setCanvasItems([]);
           setSecondaryMapItems([]);
+          setStudentZoneAssignments({});
+          setShowZones(false);
           
           // Reset scroll position
           const scrollWrapper = document.querySelector('.scroll-wrapper');
@@ -70,6 +74,7 @@ const RightPanel: React.FC = () => {
           setSavedClasses(Object.keys(classes));
           setCurrentClass('');
           setStudents([]);
+          setStudentZoneAssignments({});
           addToast('Klasse slettet', 'success');
       }
   };
@@ -86,11 +91,12 @@ const RightPanel: React.FC = () => {
           classes[currentClass] = {
               students,
               canvasItems: map1,
-              canvasItems2: map2
+              canvasItems2: map2,
+              studentZoneAssignments
           };
           localStorage.setItem('classes', JSON.stringify(classes));
       }
-  }, [students, canvasItems, secondaryMapItems, currentClass, currentMapIndex]);
+  }, [students, canvasItems, secondaryMapItems, currentClass, currentMapIndex, studentZoneAssignments]);
 
   return (
     <div className="controls">

@@ -57,6 +57,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, visible, onClose, onSel
             Merkelapp
         </li>
         <li 
+            style={{ padding: '8px 12px', cursor: 'pointer' }} 
+            onClick={() => { onSelect('zone'); onClose(); }}
+            className="context-menu-item"
+        >
+            Sone
+        </li>
+        <li 
             style={{ padding: '8px 12px', cursor: 'pointer', position: 'relative' }}
             onMouseEnter={() => setShowSubMenu(true)}
             onMouseLeave={() => setShowSubMenu(false)}

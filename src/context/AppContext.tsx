@@ -31,6 +31,10 @@ interface AppContextType {
   setGroupScale: (scale: number) => void;
   uniformTextSize: boolean;
   setUniformTextSize: (uniform: boolean) => void;
+  studentZoneAssignments: Record<string, string[]>; // studentName -> zoneIds
+  setStudentZoneAssignments: (assignments: Record<string, string[]>) => void;
+  showZones: boolean;
+  setShowZones: (show: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,6 +52,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentMapIndex, setCurrentMapIndex] = useState<number>(0);
   const [groupScale, setGroupScale] = useState<number>(1);
   const [uniformTextSize, setUniformTextSize] = useState<boolean>(false);
+  const [studentZoneAssignments, setStudentZoneAssignments] = useState<Record<string, string[]>>({});
+  const [showZones, setShowZones] = useState<boolean>(false);
 
   return (
     <AppContext.Provider
@@ -76,6 +82,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setGroupScale,
         uniformTextSize,
         setUniformTextSize,
+        studentZoneAssignments,
+        setStudentZoneAssignments,
+        showZones,
+        setShowZones,
       }}
     >
       {children}

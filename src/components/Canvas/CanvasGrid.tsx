@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
-import type { CanvasItem, Desk, RoundTable, Label } from '../../types';
+import type { CanvasItem, Desk, RoundTable, Label, Zone } from '../../types';
 import ContextMenu from '../UI/ContextMenu';
 import CanvasToolbar from './CanvasToolbar';
 import './CanvasGrid.css';
@@ -17,7 +17,8 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const isDeletingRef = useRef(false);
-  const { canvasItems, setCanvasItems, uniformTextSize } = useApp();
+  const isResizingRef = useRef(false);
+  const { canvasItems, setCanvasItems, uniformTextSize, showZones } = useApp();
   const { addToast } = useToast();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean; gridX: number; gridY: number }>({ x: 0, y: 0, visible: false, gridX: 0, gridY: 0 });
   const [draggingItem, setDraggingItem] = useState<{ id: string; offsetX: number; offsetY: number; startX: number; startY: number } | null>(null);
@@ -30,6 +31,8 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const borderColor = "#424242";
   const roundtableFill = deskColor;
   const otherColor = "#FFB74D";
+  const zoneAlpha = 0.3;
+  const deleteIconSize = 15;
 
   const getContrastColor = (hex: string) => {
     if (!hex) return "black";
@@ -106,8 +109,6 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         ctx.fillRect(0, 0, width, height);
     }
 
-    const deleteIconSize = 15;
-
     let commonFontSize: number | undefined = undefined;
 
     if (uniformTextSize) {
@@ -165,8 +166,56 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     }
 
     // Draw items
-    items.forEach(item => {
-      if (item.type === 'desk') {
+    // Sort items so zones are drawn first (behind everything else)
+    const sortedItems = [...items].sort((a, b) => {
+        if (a.type === 'zone' && b.type !== 'zone') return -1;
+        if (a.type !== 'zone' && b.type === 'zone') return 1;
+        return 0;
+    });
+
+    sortedItems.forEach(item => {
+      if (item.type === 'zone') {
+          if (!showZones) return; // Hide zones if toggle is off
+          const zone = item as Zone;
+          ctx.fillStyle = zone.color;
+          ctx.globalAlpha = zoneAlpha;
+          ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+          ctx.globalAlpha = 1.0;
+          
+          ctx.strokeStyle = zone.color;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+
+          // Draw zone name
+          ctx.fillStyle = 'black';
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(zone.name, zone.x + 5, zone.y + 5);
+
+          // Draw resize handle
+          if (showGrid) {
+              ctx.fillStyle = 'white';
+              ctx.strokeStyle = 'black';
+              ctx.lineWidth = 1;
+              ctx.fillRect(zone.x + zone.width - 10, zone.y + zone.height - 10, 10, 10);
+              ctx.strokeRect(zone.x + zone.width - 10, zone.y + zone.height - 10, 10, 10);
+          }
+
+          // Draw delete icon if hovered
+          if (currentMousePos && 
+              currentMousePos.x >= zone.x && currentMousePos.x <= zone.x + zone.width &&
+              currentMousePos.y >= zone.y && currentMousePos.y <= zone.y + zone.height) {
+              ctx.fillStyle = 'red';
+              ctx.fillRect(zone.x + zone.width - deleteIconSize, zone.y, deleteIconSize, deleteIconSize);
+              ctx.fillStyle = 'white';
+              ctx.font = 'bold 14px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('x', zone.x + zone.width - deleteIconSize / 2, zone.y + deleteIconSize / 2);
+          }
+
+      } else if (item.type === 'desk') {
         const desk = item as Desk;
         let x = desk.gridX * cellSize;
         let y = desk.gridY * cellSize;
@@ -576,7 +625,6 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       isDraggingRef.current = false;
 
       // Check for delete icon click
-      const deleteIconSize = 15;
       for (let i = canvasItems.length - 1; i >= 0; i--) {
           const item = canvasItems[i];
           let deleteX = -1, deleteY = -1;
@@ -593,17 +641,16 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
               const label = item as Label;
               deleteX = label.x + label.width - deleteIconSize;
               deleteY = label.y;
+          } else if (item.type === 'zone') {
+              if (!showZones) continue; // Skip zone interaction if hidden
+              const zone = item as Zone;
+              deleteX = zone.x + zone.width - deleteIconSize;
+              deleteY = zone.y;
           }
 
           if (deleteX !== -1 && 
               pos.x >= deleteX && pos.x <= deleteX + deleteIconSize &&
               pos.y >= deleteY && pos.y <= deleteY + deleteIconSize) {
-              
-              // Check if we are hovering over the item (delete icon is only visible on hover)
-              // Actually, the delete icon logic in drawCanvas checks if mouse is over the ITEM, not just the icon.
-              // But if we click the icon, we are definitely over the item.
-              // However, we should probably only allow deleting if the icon is actually visible (i.e. we are hovering the item).
-              // Since we are clicking, the mouse is there.
               
               // Delete item
               setCanvasItems(canvasItems.filter(it => it.id !== item.id));
@@ -612,7 +659,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           }
       }
 
-      // Check for resize handle on Labels
+      // Check for resize handle on Labels and Zones
       for (let i = canvasItems.length - 1; i >= 0; i--) {
           const item = canvasItems[i];
           if (item.type === 'label') {
@@ -626,6 +673,21 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
                       startY: pos.y,
                       startWidth: label.width,
                       startHeight: label.height
+                  });
+                  return;
+              }
+          } else if (item.type === 'zone') {
+              if (!showZones) continue; // Skip zone interaction if hidden
+              const zone = item as Zone;
+              const handleSize = 10;
+              if (pos.x >= zone.x + zone.width - handleSize && pos.x <= zone.x + zone.width &&
+                  pos.y >= zone.y + zone.height - handleSize && pos.y <= zone.y + zone.height) {
+                  setResizingItem({
+                      id: zone.id,
+                      startX: pos.x,
+                      startY: pos.y,
+                      startWidth: zone.width,
+                      startHeight: zone.height
                   });
                   return;
               }
@@ -649,8 +711,8 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
               }
           } else if (item.type === 'roundtable') {
               const table = item as RoundTable;
-              if (gridX >= table.gridX && gridX < table.gridX + 2 &&
-                  gridY >= table.gridY && gridY < table.gridY + 2) {
+              if (pos.x >= table.gridX * cellSize && pos.x <= (table.gridX + 2) * cellSize &&
+                  pos.y >= table.gridY * cellSize && pos.y <= (table.gridY + 2) * cellSize) {
                   setDraggingItem({
                       id: table.id,
                       offsetX: pos.x - table.gridX * cellSize,
@@ -673,6 +735,20 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
                   });
                   return;
               }
+          } else if (item.type === 'zone') {
+              if (!showZones) continue; // Skip zone interaction if hidden
+              const zone = item as Zone;
+              if (pos.x >= zone.x && pos.x <= zone.x + zone.width &&
+                  pos.y >= zone.y && pos.y <= zone.y + zone.height) {
+                  setDraggingItem({
+                      id: zone.id,
+                      offsetX: pos.x - zone.x,
+                      offsetY: pos.y - zone.y,
+                      startX: zone.x,
+                      startY: zone.y
+                  });
+                  return;
+              }
           }
       }
   };
@@ -681,55 +757,60 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       const pos = getMousePos(e);
       setMousePos(pos);
 
-      // Update cursor
-      let cursor = 'default';
-      // Check for resize handle hover
-      for (let item of canvasItems) {
-          if (item.type === 'label') {
-              const label = item as Label;
-              const handleSize = 10;
-              if (pos.x >= label.x + label.width - handleSize && pos.x <= label.x + label.width &&
-                  pos.y >= label.y + label.height - handleSize && pos.y <= label.y + label.height) {
-                  cursor = 'nwse-resize';
-                  break;
-              }
-          }
-      }
-      if (draggingItem) cursor = 'move';
-      if (resizingItem) cursor = 'nwse-resize';
-      if (canvasRef.current) canvasRef.current.style.cursor = cursor;
-
       if (resizingItem) {
-          const dx = pos.x - resizingItem.startX;
-          const dy = pos.y - resizingItem.startY;
-          const newWidth = Math.max(20, resizingItem.startWidth + dx);
-          const newHeight = Math.max(20, resizingItem.startHeight + dy);
-
-          setCanvasItems(canvasItems.map(item => 
-              item.id === resizingItem.id ? { ...item, width: newWidth, height: newHeight } : item
-          ));
+          isResizingRef.current = true;
+          const newWidth = Math.max(cellSize, resizingItem.startWidth + (pos.x - resizingItem.startX));
+          const newHeight = Math.max(cellSize, resizingItem.startHeight + (pos.y - resizingItem.startY));
+          
+          setCanvasItems(canvasItems.map(item => {
+              if (item.id === resizingItem.id) {
+                  if (item.type === 'label') {
+                      return { ...item, width: newWidth, height: newHeight };
+                  } else if (item.type === 'zone') {
+                      return { ...item, width: newWidth, height: newHeight };
+                  }
+              }
+              return item;
+          }));
           return;
       }
 
       if (draggingItem) {
           isDraggingRef.current = true;
-          const newItems = canvasItems.map(item => {
-              if (item.id === draggingItem.id) {
-                  if (item.type === 'desk') {
-                      const newGridX = Math.floor((pos.x - draggingItem.offsetX + cellSize / 2) / cellSize);
-                      const newGridY = Math.floor((pos.y - draggingItem.offsetY + cellSize / 2) / cellSize);
-                      return { ...item, gridX: newGridX, gridY: newGridY };
-                  } else if (item.type === 'roundtable') {
-                      const newGridX = Math.floor((pos.x - draggingItem.offsetX + cellSize) / cellSize);
-                      const newGridY = Math.floor((pos.y - draggingItem.offsetY + cellSize) / cellSize);
-                      return { ...item, gridX: newGridX, gridY: newGridY };
-                  } else if (item.type === 'label') {
-                      return { ...item, x: pos.x - draggingItem.offsetX, y: pos.y - draggingItem.offsetY };
+          
+          // For grid-based items (desks, roundtables)
+          const item = canvasItems.find(it => it.id === draggingItem.id);
+          if (!item) return;
+
+          if (item.type === 'desk' || item.type === 'roundtable') {
+              const newGridX = Math.floor((pos.x - draggingItem.offsetX + cellSize / 2) / cellSize);
+              const newGridY = Math.floor((pos.y - draggingItem.offsetY + cellSize / 2) / cellSize);
+
+              setCanvasItems(canvasItems.map(it => {
+                  if (it.id === draggingItem.id) {
+                      return { ...it, gridX: newGridX, gridY: newGridY };
                   }
-              }
-              return item;
-          });
-          setCanvasItems(newItems);
+                  return it;
+              }));
+          } else if (item.type === 'label') {
+              const newX = pos.x - draggingItem.offsetX;
+              const newY = pos.y - draggingItem.offsetY;
+              setCanvasItems(canvasItems.map(it => {
+                  if (it.id === draggingItem.id) {
+                      return { ...it, x: newX, y: newY };
+                  }
+                  return it;
+              }));
+          } else if (item.type === 'zone') {
+              const newX = pos.x - draggingItem.offsetX;
+              const newY = pos.y - draggingItem.offsetY;
+              setCanvasItems(canvasItems.map(it => {
+                  if (it.id === draggingItem.id) {
+                      return { ...it, x: newX, y: newY };
+                  }
+                  return it;
+              }));
+          }
       }
   };
 
@@ -849,6 +930,26 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           if (confirm("Slette rundbord?")) {
               setCanvasItems(canvasItems.filter(item => item.id !== clickedTable.id));
           }
+          return;
+      }
+
+      // Check for Zone double click (rename)
+      const clickedZone = canvasItems.find(item => {
+          if (item.type !== 'zone') return false;
+          if (!showZones) return false; // Respect showZones
+          const zone = item as Zone;
+          return pos.x >= zone.x && pos.x <= zone.x + zone.width &&
+                 pos.y >= zone.y && pos.y <= zone.y + zone.height;
+      });
+
+      if (clickedZone) {
+          const newName = prompt("Gi sonen et navn:", (clickedZone as Zone).name);
+          if (newName) {
+              setCanvasItems(canvasItems.map(item => 
+                  item.id === clickedZone.id ? { ...item, name: newName } : item
+              ));
+          }
+          return;
       }
   };
 
@@ -888,6 +989,28 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             height: 50,
             text: 'Merkelapp',
             crossed: false
+        };
+    } else if (type === 'zone') {
+        // Generate a random pastel color
+        const hue = Math.floor(Math.random() * 360);
+        const color = `hsl(${hue}, 70%, 80%)`;
+        
+        // Find next zone number
+        const existingZones = canvasItems.filter(i => i.type === 'zone') as Zone[];
+        let nextNum = 1;
+        while (existingZones.some(z => z.name === `Sone ${nextNum}`)) {
+            nextNum++;
+        }
+
+        newItem = {
+            id,
+            type: 'zone',
+            x: contextMenu.gridX * cellSize,
+            y: contextMenu.gridY * cellSize,
+            width: 200,
+            height: 200,
+            name: `Sone ${nextNum}`,
+            color: color
         };
     }
 
