@@ -64,13 +64,6 @@ const GroupControls: React.FC = () => {
             return;
         }
 
-        // Sort students by number of constraints (most constrained first) to make placement easier
-        const sortedStudents = [...presentStudents].sort((a, b) => {
-            const constraintsA = (studentConstraints[a] || []).length;
-            const constraintsB = (studentConstraints[b] || []).length;
-            return constraintsB - constraintsA;
-        });
-        
         // We still shuffle students with same constraint count to ensure randomness
         // Actually, let's just shuffle first, then sort stable? No, sort is not stable usually.
         // Let's shuffle, then sort.

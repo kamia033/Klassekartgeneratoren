@@ -7,7 +7,7 @@ import '../Groups.css';
 import diceIcon from '../../../assets/dice.svg';
 
 const MapControls: React.FC = () => {
-  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, showZones, setShowZones, studentConstraints } = useApp();
+  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, studentConstraints } = useApp();
   const { addToast } = useToast();
 
   const sparkleItUp = (scheme: string) => {
@@ -90,7 +90,7 @@ const MapControls: React.FC = () => {
       };
 
       // Check if we can fit everyone
-      const seatsMap1 = getAvailableSeats(canvasItems);
+      // const seatsMap1 = getAvailableSeats(canvasItems);
       const seatsMap2 = getAvailableSeats(secondaryMapItems);
       
       if (seatsMap2 > 0 && seatsMap2 < presentStudents.length) {
