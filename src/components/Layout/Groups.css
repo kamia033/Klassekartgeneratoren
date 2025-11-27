@@ -629,12 +629,14 @@
   border: none;
 }
 
-#generateButton{
+#generateButton,
+#assignStudentsButton {
 margin-bottom: 5px;
   
 }
 
-#generateButton div{
+#generateButton div,
+#assignStudentsButton div {
 display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -644,7 +646,8 @@ border-bottom: 4px solid #4CAF50;
 padding-bottom: 2px;
 }
 
-#generateButton:hover{
+#generateButton:hover,
+#assignStudentsButton:hover {
   cursor: pointer;
   background: #ebffed !important;
 }

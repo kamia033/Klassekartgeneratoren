@@ -3,6 +3,8 @@ import { useApp } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import type { Desk, RoundTable } from '../../../types';
 import '../Colors.css';
+import '../Groups.css';
+import diceIcon from '../../../assets/dice.svg';
 
 const MapControls: React.FC = () => {
   const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems } = useApp();
@@ -315,7 +317,14 @@ const MapControls: React.FC = () => {
 
   return (
     <>
-        <button id="assignStudentsButton" onClick={assignStudents}><span id="assignStudentsSpan">Plasser elever</span></button>
+        
+            <button id="assignStudentsButton" onClick={assignStudents}>
+                <div>
+                    <img src={diceIcon} style={{ height: '30px', width: '30px' }} alt="Dice" />
+                    <span>Plasser elever</span>
+                </div>
+            </button>
+       
         
         <div style={{ display: 'flex', marginTop: '10px', border: '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
             <button 

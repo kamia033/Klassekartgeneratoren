@@ -230,7 +230,7 @@ const GroupControls: React.FC = () => {
                 </label>
                 <label>
                     <input type="checkbox" checked={showAnimation} onChange={(e) => setShowAnimation(e.target.checked)} />
-                    ✨ Vis animasjon
+                    Vis animasjon
                 </label>
             </div>
         </div>
