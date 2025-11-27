@@ -575,7 +575,7 @@ const MapControls: React.FC = () => {
 
         {/* Color Picker */}
         <div className="color-picker" style={{ backgroundColor: '#fff', border: '1px solid #ccc', padding: '10px', borderRadius: '4px', marginTop: '10px' }}>
-            <p id="color-headline">🎨 Farger</p>
+            
             <div className="color-button-container" onClick={() => sparkleItUp('intense')}>
                 {['#FF0000', '#FF8700', '#DEFF0A', '#A1FF0A', '#0AFF99', '#FFD300', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'].map(c => (
                     <div key={c} className="color-button" style={{ backgroundColor: c }}></div>

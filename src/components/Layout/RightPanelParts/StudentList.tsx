@@ -214,7 +214,7 @@ const StudentList: React.FC<StudentListProps> = () => {
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0, width: 'auto' }}
                                     title="Velg soner"
                                 >
-                                    <img src={gearIcon} alt="Gear" style={{ width: '20px', height: '20px' }} />
+                                    <img id="gearIcon" src={gearIcon} alt="Gear" style={{ width: '20px', height: '20px' }} />
                                 </button>
                             )}
                         </div>

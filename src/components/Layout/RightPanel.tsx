@@ -18,7 +18,7 @@ interface RightPanelProps {
 }
 
 const RightPanel: React.FC<RightPanelProps> = () => {
-  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, showZones, setShowZones } = useApp();
+  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, showZones, setShowZones, absentStudents, setAbsentStudents, uniformTextSize, setUniformTextSize, studentConstraints, setStudentConstraints } = useApp();
   const { addToast } = useToast();
   const [savedClasses, setSavedClasses] = useState<string[]>([]);
 
@@ -34,6 +34,9 @@ const RightPanel: React.FC<RightPanelProps> = () => {
           setCanvasItems(classes[className].canvasItems || []);
           setSecondaryMapItems(classes[className].canvasItems2 || []);
           setStudentZoneAssignments(classes[className].studentZoneAssignments || {});
+          setAbsentStudents([]); // Always reset absent students on load
+          setUniformTextSize(classes[className].uniformTextSize || false);
+          setStudentConstraints(classes[className].studentConstraints || {});
           setCurrentClass(className);
           setShowZones(false);
           addToast(`Lastet klasse: ${className}`, 'success');
@@ -48,7 +51,7 @@ const RightPanel: React.FC<RightPanelProps> = () => {
               alert('En klasse med dette navnet finnes allerede!');
               return;
           }
-          classes[name] = { students: [], canvasItems: [], studentZoneAssignments: {} };
+          classes[name] = { students: [], canvasItems: [], studentZoneAssignments: {}, absentStudents: [], uniformTextSize: false, studentConstraints: {} };
           localStorage.setItem('classes', JSON.stringify(classes));
           setSavedClasses(Object.keys(classes));
           setCurrentClass(name);
@@ -56,6 +59,9 @@ const RightPanel: React.FC<RightPanelProps> = () => {
           setCanvasItems([]);
           setSecondaryMapItems([]);
           setStudentZoneAssignments({});
+          setAbsentStudents([]);
+          setUniformTextSize(false);
+          setStudentConstraints({});
           setShowZones(false);
           
           // Reset scroll position
@@ -79,6 +85,8 @@ const RightPanel: React.FC<RightPanelProps> = () => {
           setCurrentClass('');
           setStudents([]);
           setStudentZoneAssignments({});
+          setAbsentStudents([]);
+          setStudentConstraints({});
           addToast('Klasse slettet', 'success');
       }
   };
@@ -96,11 +104,14 @@ const RightPanel: React.FC<RightPanelProps> = () => {
               students,
               canvasItems: map1,
               canvasItems2: map2,
-              studentZoneAssignments
+              studentZoneAssignments,
+              absentStudents,
+              uniformTextSize,
+              studentConstraints
           };
           localStorage.setItem('classes', JSON.stringify(classes));
       }
-  }, [students, canvasItems, secondaryMapItems, currentClass, currentMapIndex, studentZoneAssignments]);
+  }, [students, canvasItems, secondaryMapItems, currentClass, currentMapIndex, studentZoneAssignments, absentStudents, uniformTextSize, studentConstraints]);
 
   return (
     <div className="controls">

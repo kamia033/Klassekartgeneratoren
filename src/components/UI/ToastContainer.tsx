@@ -8,8 +8,8 @@ const ToastContainer: React.FC = () => {
   return (
     <div style={{
       position: 'fixed',
-      bottom: '20px',
-      right: '20px',
+      top: '20px',
+      left: '20px',
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
@@ -35,7 +35,7 @@ const ToastContainer: React.FC = () => {
       ))}
       <style>{`
         @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
+          from { transform: translateX(-100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
       `}</style>

@@ -41,6 +41,26 @@
   accent-color: #424242;
 }
 
+.canvas-toolbar-scale img {
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.canvas-toolbar-scale img:hover {
+  background-color: #e0e0e0;
+}
+
+#gearIcon {
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+#gearIcon:hover {
+  background-color: #e0e0e0;
+}
+
 .checkbox-label {
   cursor: pointer;
   font-size: 15px;
