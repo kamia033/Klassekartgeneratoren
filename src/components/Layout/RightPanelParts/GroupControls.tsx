@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
+import { useLocalStorageState } from '../../../hooks/useLocalStorageState';
 import '../Groups.css'; // Reuse existing Groups.css
 import diceIcon from '../../../assets/dice.svg';
 
@@ -8,23 +9,11 @@ const GroupControls: React.FC = () => {
     const { students, absentStudents, setGeneratedGroups, setIsAnimating, studentConstraints } = useApp();
     const { addToast } = useToast();
 
-    const [groupSize, setGroupSize] = useState(3);
-    const [groupCount, setGroupCount] = useState(3);
-    const [keepExtraSeparate, setKeepExtraSeparate] = useState(false);
-    const [selectLeaders, setSelectLeaders] = useState(false);
-    const [showAnimation, setShowAnimation] = useState(true);
-
-    // Update counts when students change
-    useEffect(() => {
-        const presentCount = students.filter(s => !absentStudents.includes(s)).length;
-        if (presentCount > 0) {
-            // Default to group size 3
-            // Logic: floor(total / 3)
-            const calculatedCount = Math.floor(presentCount / 3);
-            setGroupCount(Math.max(1, calculatedCount));
-            setGroupSize(3);
-        }
-    }, [students, absentStudents]);
+    const [groupSize, setGroupSize] = useLocalStorageState('klassekart-group-size', 3);
+    const [groupCount, setGroupCount] = useLocalStorageState('klassekart-group-count', 3);
+    const [keepExtraSeparate, setKeepExtraSeparate] = useLocalStorageState('klassekart-keep-extra-separate', false);
+    const [selectLeaders, setSelectLeaders] = useLocalStorageState('klassekart-select-leaders', false);
+    const [showAnimation, setShowAnimation] = useLocalStorageState('klassekart-group-animation', true);
 
     const adjustGroupSize = (delta: number) => {
         const newVal = Math.max(2, Math.min(10, groupSize + delta));
@@ -173,13 +162,6 @@ const GroupControls: React.FC = () => {
 
     return (
         <div className="save-section">
-            <button id="generateButton" onClick={generateGroups} style={{ marginBottom: '10px' }}>
-                <div>
-                    <img src={diceIcon} style={{ height: '30px', width: '30px' }} alt="Dice" />
-                    <span>Generer grupper</span>
-                </div>
-            </button>
-
             <div className="group-controls-horizontal">
                 <div className="group-control-item">
                     <label>Størrelse:</label>
@@ -270,6 +252,12 @@ const GroupControls: React.FC = () => {
                     Vis animasjon
                 </label>
             </div>
+             <button id="generateButton" onClick={generateGroups} style={{ marginBottom: '10px' }}>
+                <div>
+                    <img src={diceIcon} style={{ height: '30px', width: '30px' }} alt="Dice" />
+                    <span>Generer grupper</span>
+                </div>
+            </button>
         </div>
     );
 };

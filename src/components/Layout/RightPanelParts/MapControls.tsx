@@ -6,25 +6,27 @@ import '../Colors.css';
 import '../Groups.css';
 import diceIcon from '../../../assets/dice.svg';
 
+const colorThemes = [
+  { id: 'intense', name: 'Intens', colors: ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'] },
+  { id: 'pastel', name: 'Pastell', colors: ['#FBF8CC', '#FDE4CF', '#FFCFD2', '#F1C0E8', '#CFBAF0', '#A3C4F3', '#90DBF4', '#8EECF5', '#98F5E1', '#B9FBC0'] },
+  { id: 'pink', name: 'Rosa', colors: ['#ff0a54', '#ff477e', '#ff5c8a', '#ff7096', '#ff85a1', '#ff99ac', '#fbb1bd', '#f9bec7', '#f7cad0', '#fae0e4'] },
+  { id: 'green-blue', name: 'Grønn og blå', colors: ['#d9ed92', '#b5e48c', '#99d98c', '#76c893', '#52b69a', '#34a0a4', '#168aad', '#1a759f', '#1e6091', '#184e77'] },
+  { id: 'ocean', name: 'Hav', colors: ['#caf0f8', '#ade8f4', '#90e0ef', '#48cae4', '#00b4d8', '#0096c7', '#0077b6', '#023e8a', '#03045e', '#5390d9'] },
+  { id: 'earth', name: 'Jord', colors: ['#fefae0', '#faedcd', '#e9edc9', '#ccd5ae', '#d4a373', '#bc6c25', '#8a5a44', '#6b705c', '#606c38', '#283618'] },
+  { id: 'sunset', name: 'Solnedgang', colors: ['#fff1d0', '#ffd29d', '#ffb38a', '#ff9671', '#f9c74f', '#f8961e', '#f3722c', '#f94144', '#d1495b', '#9d4edd'] },
+  { id: 'berry', name: 'Bær', colors: ['#f7d6e0', '#f2b5d4', '#e8a1c4', '#da7bb1', '#c45a9f', '#a63d40', '#8e4162', '#7a4988', '#613dc1', '#4e148c'] },
+] as const;
+
 const MapControls: React.FC = () => {
-  const { canvasItems, setCanvasItems, students, absentStudents, currentMapIndex, setCurrentMapIndex, secondaryMapItems, setSecondaryMapItems, uniformTextSize, setUniformTextSize, studentZoneAssignments, studentConstraints } = useApp();
+  const { canvasItems, setCanvasItems, students, absentStudents, setSecondaryMapItems, secondaryMapItems, uniformTextSize, setUniformTextSize, showChairs, setShowChairs, studentZoneAssignments, studentConstraints, studentPairings, animateSeating, setAnimateSeating, requestSeatingAnimation } = useApp();
   const { addToast } = useToast();
 
   const sparkleItUp = (scheme: string) => {
-      let palette: string[] = [];
-      if (scheme === 'intense') {
-          palette = ['#FF0000', '#FF8700', '#FFD300', '#DEFF0A', '#A1FF0A', '#0AFF99', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'];
-      } else if (scheme === 'pastel') {
-          palette = ["#FBF8CC", "#FDE4CF", "#FFCFD2", "#F1C0E8", "#CFBAF0", "#A3C4F3", "#90DBF4", "#8EECF5", "#98F5E1", "#B9FBC0"];
-      } else if (scheme === 'pink') {
-          palette = ["#ff0a54", "#ff477e", "#ff5c8a", "#ff7096", "#ff85a1", "#ff99ac", "#fbb1bd", "#f9bec7", "#f7cad0", "#fae0e4"];
-      } else if (scheme === 'mindaro') {
-          palette = ["#d9ed92", "#b5e48c", "#99d98c", "#76c893", "#52b69a", "#34a0a4", "#168aad", "#1a759f", "#1e6091", "#184e77"];
-      }
+      let palette = [...(colorThemes.find(theme => theme.id === scheme)?.colors || colorThemes[0].colors)];
 
       palette = palette.sort(() => Math.random() - 0.5);
       
-      const newItems = [...canvasItems];
+      const newItems = canvasItems.map(item => ({ ...item }));
       
       // Grouping logic for desks
       const desks = newItems.filter(item => item.type === 'desk') as Desk[];
@@ -101,6 +103,38 @@ const MapControls: React.FC = () => {
       const assignToMapWithZones = (items: typeof canvasItems, allStudents: string[]) => {
           const cellSize = 40;
           const zones = items.filter(i => i.type === 'zone') as Zone[];
+          const pairingGroupByStudent = new Map<string, number>();
+          const pairingGroups: string[][] = [];
+
+          allStudents.forEach(student => {
+              if (pairingGroupByStudent.has(student)) return;
+              const members = [student];
+              const visited = new Set([student]);
+
+              for (let index = 0; index < members.length; index++) {
+                  const current = members[index];
+                  const linkedStudents = [
+                      ...(studentPairings[current] || []),
+                      ...Object.entries(studentPairings)
+                          .filter(([, paired]) => paired.includes(current))
+                          .map(([name]) => name),
+                  ];
+                  linkedStudents.forEach(linked => {
+                      if (allStudents.includes(linked) && !visited.has(linked)) {
+                          visited.add(linked);
+                          members.push(linked);
+                      }
+                  });
+              }
+
+              if (members.length > 1) {
+                  const groupIndex = pairingGroups.length;
+                  pairingGroups.push(members);
+                  members.forEach(member => pairingGroupByStudent.set(member, groupIndex));
+              } else {
+                  pairingGroupByStudent.set(student, -1);
+              }
+          });
           
           // Pre-process locked students
           const assignments = new Map<string, string>(); // seatKey -> studentId
@@ -133,18 +167,38 @@ const MapControls: React.FC = () => {
           const zoneStudents: Record<string, string[]> = {};
           const unassignedStudents: string[] = [];
 
-          studentsToAssign.forEach(s => {
-              const assignedZoneIds = studentZoneAssignments ? (studentZoneAssignments[s] || []) : [];
-              // Filter out invalid zones
-              const validZoneIds = assignedZoneIds.filter(id => zones.some(z => z.id === id));
-              
+          const handledPairingGroups = new Set<number>();
+          studentsToAssign.forEach(student => {
+              const pairingGroupIndex = pairingGroupByStudent.get(student) ?? -1;
+              const members = pairingGroupIndex >= 0 ? pairingGroups[pairingGroupIndex] : [student];
+
+              if (pairingGroupIndex >= 0) {
+                  if (handledPairingGroups.has(pairingGroupIndex)) return;
+                  handledPairingGroups.add(pairingGroupIndex);
+              }
+
+              const membersToAssign = members.filter(member => studentsToAssign.includes(member));
+              if (members.some(member => lockedStudents.has(member))) {
+                  unassignedStudents.push(...membersToAssign);
+                  return;
+              }
+
+              const memberZoneIds = membersToAssign
+                  .map(member => (studentZoneAssignments[member] || []).filter(id => zones.some(zone => zone.id === id)));
+              const commonZoneIds = memberZoneIds.length === 0
+                  ? []
+                  : memberZoneIds
+                      .reduce((common, ids) => common.filter(id => ids.includes(id)), memberZoneIds[0])
+                      .filter(id => id);
+              const requestedZoneIds = memberZoneIds.flat().filter((id, index, all) => all.indexOf(id) === index);
+              const validZoneIds = commonZoneIds.length > 0 ? commonZoneIds : requestedZoneIds;
+
               if (validZoneIds.length > 0) {
-                  // If student has multiple zones, pick one randomly for this placement
                   const randomZoneId = validZoneIds[Math.floor(Math.random() * validZoneIds.length)];
                   if (!zoneStudents[randomZoneId]) zoneStudents[randomZoneId] = [];
-                  zoneStudents[randomZoneId].push(s);
+                  zoneStudents[randomZoneId].push(...membersToAssign);
               } else {
-                  unassignedStudents.push(s);
+                  unassignedStudents.push(...membersToAssign);
               }
           });
 
@@ -159,9 +213,34 @@ const MapControls: React.FC = () => {
               itemId: string;
               seatIndex?: number; // for roundtables
               zoneId: string | null;
+              seatingGroupId: string;
           };
 
           const seats: SeatLocation[] = [];
+          const deskSeatingGroups = new Map<string, string>();
+          const desksForGrouping = items.filter(item => item.type === 'desk') as Desk[];
+          const visitedDesks = new Set<string>();
+
+          desksForGrouping.forEach(desk => {
+              if (visitedDesks.has(desk.id)) return;
+              const seatingGroupId = `desks-${desk.id}`;
+              const queue = [desk];
+              visitedDesks.add(desk.id);
+
+              while (queue.length > 0) {
+                  const current = queue.shift()!;
+                  deskSeatingGroups.set(current.id, seatingGroupId);
+                  desksForGrouping.forEach(other => {
+                      if (visitedDesks.has(other.id)) return;
+                      const dx = Math.abs(other.gridX - current.gridX);
+                      const dy = Math.abs(other.gridY - current.gridY);
+                      if (dx <= 1 && dy <= 1 && (dx !== 0 || dy !== 0)) {
+                          visitedDesks.add(other.id);
+                          queue.push(other);
+                      }
+                  });
+              }
+          });
 
           items.forEach(item => {
               if (item.type === 'desk') {
@@ -179,7 +258,11 @@ const MapControls: React.FC = () => {
                           cy >= z.y && cy <= z.y + z.height
                       );
                       
-                      seats.push({ itemId: desk.id, zoneId: zone ? zone.id : null });
+                      seats.push({
+                          itemId: desk.id,
+                          zoneId: zone ? zone.id : null,
+                          seatingGroupId: deskSeatingGroups.get(desk.id) || `desk-${desk.id}`,
+                      });
                   }
               } else if (item.type === 'roundtable') {
                   const rt = item as RoundTable;
@@ -196,7 +279,12 @@ const MapControls: React.FC = () => {
 
                   rt.markedSeats.forEach((marked, idx) => {
                       if (!marked) {
-                          seats.push({ itemId: rt.id, seatIndex: idx, zoneId: zone ? zone.id : null });
+                          seats.push({
+                              itemId: rt.id,
+                              seatIndex: idx,
+                              zoneId: zone ? zone.id : null,
+                              seatingGroupId: `roundtable-${rt.id}`,
+                          });
                       }
                   });
               }
@@ -209,6 +297,31 @@ const MapControls: React.FC = () => {
           // Helper to check constraints
           const hasConflict = (student: string, seat: SeatLocation, currentAssignments: Map<string, string>) => {
               const constraints = studentConstraints[student] || [];
+              const pairingGroupIndex = pairingGroupByStudent.get(student) ?? -1;
+              const pairingMembers = pairingGroupIndex >= 0 ? pairingGroups[pairingGroupIndex] : [];
+              const assignedPairingSeats = pairingMembers
+                  .filter(member => member !== student)
+                  .map(member => {
+                      const assignedEntry = Array.from(currentAssignments.entries()).find(([, assignedStudent]) => assignedStudent === member);
+                      return assignedEntry ? seats.find(candidate => getSeatKey(candidate) === assignedEntry[0]) : undefined;
+                  })
+                  .filter((assignedSeat): assignedSeat is SeatLocation => Boolean(assignedSeat));
+
+              if (assignedPairingSeats.length > 0 &&
+                  assignedPairingSeats.some(assignedSeat => assignedSeat.seatingGroupId !== seat.seatingGroupId)) {
+                  return true;
+              }
+
+              if (pairingMembers.length > 1 && assignedPairingSeats.length === 0) {
+                  const emptySeatsAtTable = seats.filter(candidate =>
+                      candidate.seatingGroupId === seat.seatingGroupId &&
+                      !currentAssignments.has(getSeatKey(candidate))
+                  );
+                  if (emptySeatsAtTable.length < pairingMembers.filter(member => allStudents.includes(member)).length) {
+                      return true;
+                  }
+              }
+
               if (constraints.length === 0) return false;
 
               // Find neighbors of this seat
@@ -250,9 +363,14 @@ const MapControls: React.FC = () => {
           const assignGreedy = (studentsToAssign: string[], availableSeats: SeatLocation[]) => {
               // Sort students by constraint count (hardest first)
               const sortedStudents = [...studentsToAssign].sort((a, b) => {
-                  const cA = (studentConstraints[a] || []).length;
-                  const cB = (studentConstraints[b] || []).length;
-                  return cB - cA;
+                  const pairingIndexA = pairingGroupByStudent.get(a) ?? -1;
+                  const pairingIndexB = pairingGroupByStudent.get(b) ?? -1;
+                  const pairingSizeA = pairingIndexA >= 0 ? pairingGroups[pairingIndexA].length : 1;
+                  const pairingSizeB = pairingIndexB >= 0 ? pairingGroups[pairingIndexB].length : 1;
+                  const constraintDifference =
+                      ((studentConstraints[b] || []).length + pairingSizeB) -
+                      ((studentConstraints[a] || []).length + pairingSizeA);
+                  return constraintDifference;
               });
 
               // Shuffle seats to ensure randomness in placement
@@ -278,7 +396,6 @@ const MapControls: React.FC = () => {
                       if (emptySeatIndex !== -1) {
                           const seat = shuffledSeats[emptySeatIndex];
                           assignments.set(getSeatKey(seat), student);
-                          // addToast(`Kunne ikke oppfylle alle ønsker for ${student}`, 'warning');
                       } else {
                           unassigned.push(student);
                       }
@@ -334,6 +451,9 @@ const MapControls: React.FC = () => {
 
       const newCanvasItems = assignToMapWithZones(canvasItems, presentStudents);
       setCanvasItems(newCanvasItems);
+      if (animateSeating) {
+          requestSeatingAnimation();
+      }
 
       // 2. Extract Groups from Map 1
       const studentGroups: string[][] = [];
@@ -521,17 +641,6 @@ const MapControls: React.FC = () => {
       }
   };
 
-  const switchMap = (index: number) => {
-      if (index === currentMapIndex) return;
-      
-      const currentItems = [...canvasItems];
-      const otherItems = [...secondaryMapItems];
-      
-      setSecondaryMapItems(currentItems);
-      setCanvasItems(otherItems);
-      setCurrentMapIndex(index);
-  };
-
   return (
     <>
         
@@ -542,60 +651,23 @@ const MapControls: React.FC = () => {
                 </div>
             </button>
        
-        
-        <div style={{ display: 'flex', marginTop: '10px', border: '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
-            <button 
-                onClick={() => switchMap(0)} 
-                style={{ 
-                    flex: 1, 
-                    backgroundColor: currentMapIndex === 0 ? '#e0e0e0' : 'white', 
-                    border: 'none', 
-                    borderRadius: 0,
-                    fontWeight: currentMapIndex === 0 ? 'bold' : 'normal',
-                    padding: '8px'
-                }}
-            >
-                Klassekart 1
-            </button>
-            <div style={{ width: '1px', backgroundColor: '#ccc' }}></div>
-            <button 
-                onClick={() => switchMap(1)} 
-                style={{ 
-                    flex: 1, 
-                    backgroundColor: currentMapIndex === 1 ? '#e0e0e0' : 'white', 
-                    border: 'none', 
-                    borderRadius: 0,
-                    fontWeight: currentMapIndex === 1 ? 'bold' : 'normal',
-                    padding: '8px'
-                }}
-            >
-                Klassekart 2
-            </button>
-        </div>
-
         {/* Color Picker */}
-        <div className="color-picker" style={{ backgroundColor: '#fff', border: '1px solid #ccc', padding: '10px', borderRadius: '4px', marginTop: '10px' }}>
-            
-            <div className="color-button-container" onClick={() => sparkleItUp('intense')}>
-                {['#FF0000', '#FF8700', '#DEFF0A', '#A1FF0A', '#0AFF99', '#FFD300', '#0AEFFF', '#147DF5', '#580AFF', '#BE0AFF'].map(c => (
-                    <div key={c} className="color-button" style={{ backgroundColor: c }}></div>
-                ))}
-            </div>
-            <div className="color-button-container" onClick={() => sparkleItUp('pastel')}>
-                {["#FBF8CC", "#FDE4CF", "#FFCFD2", "#F1C0E8", "#CFBAF0", "#A3C4F3", "#90DBF4", "#8EECF5", "#98F5E1", "#B9FBC0"].map(c => (
-                    <div key={c} className="color-button" style={{ backgroundColor: c }}></div>
-                ))}
-            </div>
-            <div className="color-button-container" onClick={() => sparkleItUp('pink')}>
-                {["#ff0a54", "#ff477e", "#ff5c8a", "#ff7096", "#ff85a1", "#ff99ac", "#fbb1bd", "#f9bec7", "#f7cad0", "#fae0e4"].map(c => (
-                    <div key={c} className="color-button" style={{ backgroundColor: c }}></div>
-                ))}
-            </div>
-            <div className="color-button-container" onClick={() => sparkleItUp('mindaro')}>
-                {["#d9ed92", "#b5e48c", "#99d98c", "#76c893", "#52b69a", "#34a0a4", "#168aad", "#1a759f", "#1e6091", "#184e77"].map(c => (
-                    <div key={c} className="color-button" style={{ backgroundColor: c }}></div>
-                ))}
-            </div>
+        <div className="color-picker" style={{ backgroundColor: '#fff', border: 'none', padding: '10px', borderRadius: '4px', marginTop: '10px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '5px' }}>Fargetema</div>
+            {colorThemes.map(theme => (
+                <button
+                    key={theme.id}
+                    type="button"
+                    className="color-button-container"
+                    onClick={() => sparkleItUp(theme.id)}
+                    title={`Bruk fargetema ${theme.name}`}
+                    aria-label={`Bruk fargetema ${theme.name}`}
+                >
+                    {theme.colors.map(c => (
+                        <span key={c} className="color-button" style={{ backgroundColor: c }} />
+                    ))}
+                </button>
+            ))}
         </div>
 
         <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
@@ -607,6 +679,24 @@ const MapControls: React.FC = () => {
                     style={{ marginRight: '10px', width: '18px', height: '18px' }}
                 />
                 <span style={{ fontSize: '14px' }}>Samme tekststørrelse på alle</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '8px' }}>
+                <input
+                    type="checkbox"
+                    checked={showChairs}
+                    onChange={(e) => setShowChairs(e.target.checked)}
+                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px' }}>Vis stoler ved pultene</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                    type="checkbox"
+                    checked={animateSeating}
+                    onChange={(e) => setAnimateSeating(e.target.checked)}
+                    style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px' }}>Animer tilfeldig plassering</span>
             </label>
         </div>
     </>

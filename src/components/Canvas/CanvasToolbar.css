@@ -88,3 +88,23 @@
   display: flex;
   gap: 5px;
 }
+
+.canvas-toolbar-history {
+  display: flex;
+  gap: 4px;
+}
+
+.canvas-toolbar .canvas-toolbar-redoundo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  white-space: nowrap;
+}
+
+.canvas-toolbar .canvas-toolbar-redoundo img {
+  padding: 0;
+  margin: 0;
+}

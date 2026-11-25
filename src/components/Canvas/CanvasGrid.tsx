@@ -1,8 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import type { CanvasItem, Desk, RoundTable, Label, Zone } from '../../types';
 import ContextMenu from '../UI/ContextMenu';
+import DeskStudentMenu from '../UI/DeskStudentMenu';
 import CanvasToolbar from './CanvasToolbar';
 import './CanvasGrid.css';
 
@@ -18,13 +19,15 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const isDraggingRef = useRef(false);
   const isDeletingRef = useRef(false);
   const isResizingRef = useRef(false);
-  const { canvasItems, setCanvasItems, uniformTextSize, showZones } = useApp();
+  const { canvasItems, setCanvasItems, updateCanvasItemsLive, recordCanvasHistory, undoCanvas, canUndo, redoCanvas, canRedo, students, renameStudent, uniformTextSize, showZones, showChairs, seatingAnimationRequest } = useApp();
+  const [deskMenu, setDeskMenu] = useState<{ x: number; y: number; itemId: string; seatIndex?: number } | null>(null);
   const { addToast } = useToast();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean; gridX: number; gridY: number }>({ x: 0, y: 0, visible: false, gridX: 0, gridY: 0 });
   const [draggingItem, setDraggingItem] = useState<{ id: string; offsetX: number; offsetY: number; startX: number; startY: number } | null>(null);
   const [resizingItem, setResizingItem] = useState<{ id: string; startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
   const [scale, setScale] = useState(1);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const animationItemsRef = useRef<CanvasItem[] | null>(null);
 
   // Handle pinch-to-zoom
   useEffect(() => {
@@ -87,10 +90,10 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d');
         if (ctx) {
-            drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos);
+            drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos, true, true, showChairs);
         }
     }
-  }, [showZones, canvasItems, mousePos, width, height, cellSize]);
+  }, [showZones, canvasItems, mousePos, width, height, cellSize, showChairs]);
 
   const gridColor = "#E0E0E0";
   const deskColor = "#FF0000";
@@ -99,6 +102,26 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
   const otherColor = "#FFB74D";
   const zoneAlpha = 0.3;
   const deleteIconSize = 15;
+  const deskDeleteIconSize = 11;
+
+  const drawDeskDeleteIcon = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
+      const r = deskDeleteIconSize / 2;
+      const cx = left + r;
+      const cy = top + r;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      const o = r * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(cx - o, cy - o);
+      ctx.lineTo(cx + o, cy + o);
+      ctx.moveTo(cx + o, cy - o);
+      ctx.lineTo(cx - o, cy + o);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+  };
 
   const getContrastColor = (hex: string) => {
     if (!hex) return "black";
@@ -167,7 +190,26 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     ctx.restore();
   };
 
-  const drawCanvas = (ctx: CanvasRenderingContext2D, width: number, height: number, cellSize: number, items: CanvasItem[], currentMousePos: { x: number, y: number } | null, clear: boolean = true, showGrid: boolean = true) => {
+  const drawChair = (ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number, side: 'left' | 'right') => {
+      const seatW = cellSize * 0.4;
+      const seatH = cellSize * 0.7;
+      const backW = cellSize * 0.12;
+      const gap = 2;
+      const dir = side === 'left' ? -1 : 1;
+      const seatX = dir < 0 ? x - gap - seatW : x + cellSize + gap;
+      const seatY = y + (cellSize - seatH) / 2;
+      const backX = dir < 0 ? seatX - backW : seatX + seatW;
+
+      ctx.fillStyle = '#b0b0b0';
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(seatX, seatY, seatW, seatH);
+      ctx.strokeRect(seatX, seatY, seatW, seatH);
+      ctx.fillRect(backX, seatY, backW, seatH);
+      ctx.strokeRect(backX, seatY, backW, seatH);
+  };
+
+  const drawCanvas = (ctx: CanvasRenderingContext2D, width: number, height: number, cellSize: number, items: CanvasItem[], currentMousePos: { x: number, y: number } | null, clear: boolean = true, showGrid: boolean = true, showChairs: boolean = false) => {
     // Clear canvas
     if (clear) {
         ctx.clearRect(0, 0, width, height);
@@ -232,6 +274,10 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     }
 
     // Draw items
+    const deskKeys = showChairs
+        ? new Set(items.filter(i => i.type === 'desk').map(i => `${(i as Desk).gridX},${(i as Desk).gridY}`))
+        : null;
+
     // Sort items so zones are drawn first (behind everything else)
     const sortedItems = [...items].sort((a, b) => {
         if (a.type === 'zone' && b.type !== 'zone') return -1;
@@ -287,11 +333,19 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         let y = desk.gridY * cellSize;
         let fill = desk.color || deskColor;
         ctx.fillStyle = fill;
-        ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+        ctx.fillRect(x, y, cellSize, cellSize);
+        // Stroke on the cell edge so neighbouring desks share one border line instead of drawing two.
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, cellSize, cellSize);
         
+        if (deskKeys) {
+            const hasLeft = deskKeys.has(`${desk.gridX - 1},${desk.gridY}`);
+            const hasRight = deskKeys.has(`${desk.gridX + 1},${desk.gridY}`);
+            if (hasLeft && !hasRight) drawChair(ctx, x, y, cellSize, 'right');
+            else if (!hasLeft) drawChair(ctx, x, y, cellSize, 'left');
+        }
+
         if (desk.studentId && !desk.marked) {
             let textColor = getContrastColor(fill);
             const padding = uniformTextSize ? 1 : 3;
@@ -313,13 +367,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
         if (currentMousePos && 
             currentMousePos.x >= x && currentMousePos.x <= x + cellSize &&
             currentMousePos.y >= y && currentMousePos.y <= y + cellSize) {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(x + cellSize - deleteIconSize, y, deleteIconSize, deleteIconSize);
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 14px Verdana';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('x', x + cellSize - deleteIconSize / 2, y + deleteIconSize / 2);
+            drawDeskDeleteIcon(ctx, x + cellSize - deskDeleteIconSize, y);
         }
 
       } else if (item.type === 'roundtable') {
@@ -477,20 +525,22 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             minY = Math.min(minY, t.gridY * cellSize);
             maxX = Math.max(maxX, (t.gridX + 2) * cellSize);
             maxY = Math.max(maxY, (t.gridY + 2) * cellSize);
-        } else if (item.type === 'label') {
-            const l = item as Label;
-            minX = Math.min(minX, l.x);
-            minY = Math.min(minY, l.y);
-            maxX = Math.max(maxX, l.x + l.width);
-            maxY = Math.max(maxY, l.y + l.height);
+        } else if (item.type === 'label' || item.type === 'blackboard' || item.type === 'zone') {
+            minX = Math.min(minX, item.x);
+            minY = Math.min(minY, item.y);
+            maxX = Math.max(maxX, item.x + item.width);
+            maxY = Math.max(maxY, item.y + item.height);
         }
     });
 
-    const padding = 0;
-    minX = Math.max(0, minX - padding);
-    minY = Math.max(0, minY - padding);
-    maxX = Math.min(width, maxX + padding);
-    maxY = Math.min(height, maxY + padding);
+    const chairWidth = showChairs && canvasItems.some(item => item.type === 'desk')
+        ? Math.ceil(cellSize * 0.52) + 2
+        : 0;
+    const edgePadding = 2;
+    minX -= chairWidth + edgePadding;
+    minY -= edgePadding;
+    maxX += chairWidth + edgePadding;
+    maxY += edgePadding;
 
     return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   };
@@ -564,9 +614,151 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     ctx.scale(dpr, dpr);
     ctx.scale(scale, scale);
 
-    drawCanvas(ctx, width, height, cellSize, canvasItems, mousePos, false, !isFullscreen);
+    drawCanvas(ctx, width, height, cellSize, animationItemsRef.current ?? canvasItems, mousePos, false, !isFullscreen, showChairs);
 
-  }, [width, height, cellSize, canvasItems, scale, mousePos, isFullscreen, uniformTextSize]);
+  }, [width, height, cellSize, canvasItems, scale, mousePos, isFullscreen, uniformTextSize, showChairs]);
+
+  useLayoutEffect(() => {
+    if (seatingAnimationRequest === 0) return;
+
+    type AnimatedSeat = {
+      key: string;
+      itemId: string;
+      seatIndex?: number;
+      finalName: string;
+      currentName: string;
+      nextChange: number;
+      duration: number;
+      finished: boolean;
+    };
+
+    const finalItems = canvasItems;
+    const seats: AnimatedSeat[] = [];
+    const startTime = performance.now();
+
+    finalItems.forEach(item => {
+      if (item.type === 'desk') {
+        if (item.studentId && !item.marked) {
+          seats.push({
+            key: `${item.id}-desk`,
+            itemId: item.id,
+            finalName: item.studentId,
+            currentName: item.studentId,
+            nextChange: startTime + Math.random() * 90,
+            duration: 1500 + Math.random() * 1000,
+            finished: false,
+          });
+        }
+      } else if (item.type === 'roundtable') {
+        item.studentIds.forEach((studentId, seatIndex) => {
+          if (studentId && !item.markedSeats[seatIndex]) {
+            seats.push({
+              key: `${item.id}-${seatIndex}`,
+              itemId: item.id,
+              seatIndex,
+              finalName: studentId,
+              currentName: studentId,
+              nextChange: startTime + Math.random() * 90,
+              duration: 1500 + Math.random() * 1000,
+              finished: false,
+            });
+          }
+        });
+      }
+    });
+
+    const names = seats.map(seat => seat.finalName);
+    if (names.length < 2) return;
+
+    const createAnimatedItems = () => {
+      const namesBySeat = new Map(seats.map(seat => [seat.key, seat.currentName]));
+      return finalItems.map(item => {
+        if (item.type === 'desk') {
+          const studentId = namesBySeat.get(`${item.id}-desk`);
+          return studentId ? { ...item, studentId } : item;
+        }
+        if (item.type === 'roundtable') {
+          return {
+            ...item,
+            studentIds: item.studentIds.map((studentId, seatIndex) =>
+              namesBySeat.get(`${item.id}-${seatIndex}`) || studentId
+            ),
+          };
+        }
+        return item;
+      });
+    };
+
+    const paint = (items: CanvasItem[]) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext('2d');
+      if (!canvas || !ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const targetWidth = width * scale;
+      const targetHeight = height * scale;
+      canvas.width = targetWidth * dpr;
+      canvas.height = targetHeight * dpr;
+      canvas.style.width = `${targetWidth}px`;
+      canvas.style.height = `${targetHeight}px`;
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(dpr, dpr);
+      ctx.scale(scale, scale);
+      drawCanvas(ctx, width, height, cellSize, items, mousePos, false, !isFullscreen, showChairs);
+    };
+
+    seats.forEach(seat => {
+      seat.currentName = names[Math.floor(Math.random() * names.length)];
+    });
+    animationItemsRef.current = createAnimatedItems();
+    paint(animationItemsRef.current);
+
+    let frameId = 0;
+    let cancelled = false;
+
+    const animate = (now: number) => {
+      if (cancelled) return;
+      let changed = false;
+
+      seats.forEach(seat => {
+        if (seat.finished || now < seat.nextChange) return;
+        const progress = Math.min(1, (now - startTime) / seat.duration);
+
+        if (progress >= 1) {
+          seat.currentName = seat.finalName;
+          seat.finished = true;
+        } else {
+          seat.currentName = names[Math.floor(Math.random() * names.length)];
+          const slowingInterval = 45 + (progress * progress * 430);
+          seat.nextChange = now + slowingInterval + Math.random() * 70;
+        }
+        changed = true;
+      });
+
+      if (changed) {
+        animationItemsRef.current = createAnimatedItems();
+        paint(animationItemsRef.current);
+      }
+
+      if (seats.every(seat => seat.finished)) {
+        animationItemsRef.current = null;
+        paint(finalItems);
+        return;
+      }
+
+      frameId = requestAnimationFrame(animate);
+    };
+
+    frameId = requestAnimationFrame(animate);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frameId);
+      animationItemsRef.current = null;
+    };
+  }, [seatingAnimationRequest]);
 
   const getMousePos = (e: React.MouseEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -681,15 +873,17 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       const gridY = Math.floor(pos.y / cellSize);
       
       isDraggingRef.current = false;
+      isResizingRef.current = false;
 
       // Check for delete icon click
       for (let i = canvasItems.length - 1; i >= 0; i--) {
           const item = canvasItems[i];
-          let deleteX = -1, deleteY = -1;
+          let deleteX = -1, deleteY = -1, iconSize = deleteIconSize;
 
           if (item.type === 'desk') {
               const desk = item as Desk;
-              deleteX = (desk.gridX + 1) * cellSize - deleteIconSize;
+              iconSize = deskDeleteIconSize;
+              deleteX = (desk.gridX + 1) * cellSize - iconSize;
               deleteY = desk.gridY * cellSize;
           } else if (item.type === 'roundtable') {
               const table = item as RoundTable;
@@ -707,8 +901,8 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           }
 
           if (deleteX !== -1 && 
-              pos.x >= deleteX && pos.x <= deleteX + deleteIconSize &&
-              pos.y >= deleteY && pos.y <= deleteY + deleteIconSize) {
+              pos.x >= deleteX && pos.x <= deleteX + iconSize &&
+              pos.y >= deleteY && pos.y <= deleteY + iconSize) {
               
               // Delete item
               setCanvasItems(canvasItems.filter(it => it.id !== item.id));
@@ -816,11 +1010,14 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       setMousePos(pos);
 
       if (resizingItem) {
-          isResizingRef.current = true;
+          if (!isResizingRef.current) {
+              recordCanvasHistory();
+              isResizingRef.current = true;
+          }
           const newWidth = Math.max(cellSize, resizingItem.startWidth + (pos.x - resizingItem.startX));
           const newHeight = Math.max(cellSize, resizingItem.startHeight + (pos.y - resizingItem.startY));
           
-          setCanvasItems(canvasItems.map(item => {
+          updateCanvasItemsLive(canvasItems.map(item => {
               if (item.id === resizingItem.id) {
                   if (item.type === 'label') {
                       return { ...item, width: newWidth, height: newHeight };
@@ -834,7 +1031,10 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       }
 
       if (draggingItem) {
-          isDraggingRef.current = true;
+          if (!isDraggingRef.current) {
+              recordCanvasHistory();
+              isDraggingRef.current = true;
+          }
           
           // For grid-based items (desks, roundtables)
           const item = canvasItems.find(it => it.id === draggingItem.id);
@@ -844,7 +1044,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
               const newGridX = Math.floor((pos.x - draggingItem.offsetX + cellSize / 2) / cellSize);
               const newGridY = Math.floor((pos.y - draggingItem.offsetY + cellSize / 2) / cellSize);
 
-              setCanvasItems(canvasItems.map(it => {
+              updateCanvasItemsLive(canvasItems.map(it => {
                   if (it.id === draggingItem.id) {
                       return { ...it, gridX: newGridX, gridY: newGridY };
                   }
@@ -853,7 +1053,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           } else if (item.type === 'label') {
               const newX = pos.x - draggingItem.offsetX;
               const newY = pos.y - draggingItem.offsetY;
-              setCanvasItems(canvasItems.map(it => {
+              updateCanvasItemsLive(canvasItems.map(it => {
                   if (it.id === draggingItem.id) {
                       return { ...it, x: newX, y: newY };
                   }
@@ -862,7 +1062,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           } else if (item.type === 'zone') {
               const newX = pos.x - draggingItem.offsetX;
               const newY = pos.y - draggingItem.offsetY;
-              setCanvasItems(canvasItems.map(it => {
+              updateCanvasItemsLive(canvasItems.map(it => {
                   if (it.id === draggingItem.id) {
                       return { ...it, x: newX, y: newY };
                   }
@@ -880,6 +1080,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
 
       if (resizingItem) {
           setResizingItem(null);
+          isResizingRef.current = false;
           return;
       }
 
@@ -970,7 +1171,25 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
           return;
       }
 
-      // Check for Desk double click (remove student)
+      // Double click on a roundtable seat: replace or rename that seat's student
+      for (const item of canvasItems) {
+          if (item.type !== 'roundtable') continue;
+          const table = item as RoundTable;
+          const cx = table.gridX * cellSize + cellSize;
+          const cy = table.gridY * cellSize + cellSize;
+          for (let i = 0; i < table.numSeats; i++) {
+              const angle = table.numSeats === 2 ? (i === 0 ? 0 : Math.PI) : (2 * Math.PI / table.numSeats) * i - Math.PI / 2;
+              const size = cellSize * 0.8;
+              const sx = cx + Math.cos(angle) * cellSize * 0.7 - size / 2;
+              const sy = cy + Math.sin(angle) * cellSize * 0.7 - size / 2;
+              if (pos.x >= sx && pos.x <= sx + size && pos.y >= sy && pos.y <= sy + size) {
+                  setDeskMenu({ x: e.clientX, y: e.clientY, itemId: table.id, seatIndex: i });
+                  return;
+              }
+          }
+      }
+
+      // Check for Desk double click (replace student or rename)
       const clickedDesk = canvasItems.find(item => 
         item.type === 'desk' && 
         (item as Desk).gridX === gridX && 
@@ -978,12 +1197,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       );
 
       if (clickedDesk) {
-          // Only remove student if assigned, do not delete desk on double click
-          if ((clickedDesk as Desk).studentId) {
-              setCanvasItems(canvasItems.map(item => 
-                  item.id === clickedDesk.id ? { ...item, studentId: null } : item
-              ));
-          }
+          setDeskMenu({ x: e.clientX, y: e.clientY, itemId: clickedDesk.id });
           return;
       }
 
@@ -1047,7 +1261,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             numSeats,
             studentIds: new Array(numSeats).fill(null),
             markedSeats: new Array(numSeats).fill(false),
-            color: null
+            color: '#FFFFFF'
         };
     } else if (type === 'merkelapp') {
         newItem = {
@@ -1090,6 +1304,28 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
     setContextMenu({ ...contextMenu, visible: false });
   };
   
+  // Puts `name` at a desk or roundtable seat. If that student already sits elsewhere, they take the previous student's place.
+  const replaceStudentAt = (itemId: string, seatIndex: number | undefined, name: string) => {
+      const target = canvasItems.find(item => item.id === itemId);
+      if (!target) return;
+      const previous = target.type === 'desk'
+          ? target.studentId
+          : target.type === 'roundtable' && seatIndex !== undefined ? target.studentIds[seatIndex] : undefined;
+      if (previous === undefined || previous === name) return;
+
+      const swap = (s: string | null) => (s === name ? previous : s);
+      setCanvasItems(canvasItems.map(item => {
+          if (item.id === itemId) {
+              if (item.type === 'desk') return { ...item, studentId: name };
+              if (item.type === 'roundtable') return { ...item, studentIds: item.studentIds.map((s, i) => (i === seatIndex ? name : swap(s))) };
+              return item;
+          }
+          if (item.type === 'desk') return { ...item, studentId: swap(item.studentId) };
+          if (item.type === 'roundtable') return { ...item, studentIds: item.studentIds.map(swap) };
+          return item;
+      }));
+  };
+
   const handleFullscreen = () => {
       if (!containerRef.current) return;
       if (!document.fullscreenElement) {
@@ -1108,11 +1344,13 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       const box = getBoundingBox();
       const exportScale = 3; // High resolution for export
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = box.width * exportScale;
-      tempCanvas.height = box.height * exportScale;
+      tempCanvas.width = Math.ceil(box.width * exportScale);
+      tempCanvas.height = Math.ceil(box.height * exportScale);
       const ctx = tempCanvas.getContext('2d');
       if (!ctx) return;
-      
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
       // Scale context for high res drawing
       ctx.scale(exportScale, exportScale);
       // Translate to move the bounding box to 0,0
@@ -1136,7 +1374,7 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       
       // Wait, drawCanvas uses `width` and `height` for loops.
       // We should pass the original width/height.
-      drawCanvas(ctx, width, height, cellSize, canvasItems, null, true, false);
+      drawCanvas(ctx, width, height, cellSize, canvasItems, null, true, false, showChairs);
       
       try {
           const blob = await new Promise<Blob | null>(resolve => tempCanvas.toBlob(resolve));
@@ -1159,15 +1397,17 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
       const box = getBoundingBox();
       const exportScale = 3;
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = box.width * exportScale;
-      tempCanvas.height = box.height * exportScale;
+      tempCanvas.width = Math.ceil(box.width * exportScale);
+      tempCanvas.height = Math.ceil(box.height * exportScale);
       const ctx = tempCanvas.getContext('2d');
       if (!ctx) return;
-      
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
       ctx.scale(exportScale, exportScale);
       ctx.translate(-box.x, -box.y);
 
-      drawCanvas(ctx, width, height, cellSize, canvasItems, null, true, false);
+      drawCanvas(ctx, width, height, cellSize, canvasItems, null, true, false, showChairs);
 
       const link = document.createElement('a');
       link.download = 'klassekart.png';
@@ -1210,6 +1450,10 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             onFullscreen={handleFullscreen} 
             onCopy={handleCopy} 
             onDownload={handleDownload} 
+            onUndo={undoCanvas}
+            canUndo={canUndo}
+            onRedo={redoCanvas}
+            canRedo={canRedo}
         />
         <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
             <div style={{ width: width * scale, height: height * scale }}>
@@ -1233,6 +1477,40 @@ const CanvasGrid: React.FC<CanvasGridProps> = ({ width, height, cellSize }) => {
             onClose={() => setContextMenu({ ...contextMenu, visible: false })}
             onSelect={handleSelect}
         />
+        {deskMenu && (() => {
+            const item = canvasItems.find(i => i.id === deskMenu.itemId);
+            if (!item) return null;
+            const seatIndex = deskMenu.seatIndex;
+            let currentName: string | null = null;
+            if (item.type === 'desk') currentName = item.studentId;
+            else if (item.type === 'roundtable' && seatIndex !== undefined) currentName = item.studentIds[seatIndex];
+            const seated = new Set<string>();
+            canvasItems.forEach(i => {
+                if (i.type === 'desk' && i.studentId) seated.add(i.studentId);
+                if (i.type === 'roundtable') i.studentIds.forEach(s => { if (s) seated.add(s); });
+            });
+            const options = students
+                .filter(name => name !== currentName)
+                .map(name => ({ name, seated: seated.has(name) }));
+            return (
+                <DeskStudentMenu
+                    x={deskMenu.x}
+                    y={deskMenu.y}
+                    currentName={currentName}
+                    options={options}
+                    onClose={() => setDeskMenu(null)}
+                    onRename={() => {
+                        if (!currentName) return;
+                        const newName = prompt("Nytt navn på eleven:", currentName);
+                        if (newName === null) return;
+                        if (!renameStudent(currentName, newName)) {
+                            alert("Navnet er tomt, er det samme som før, eller finnes allerede.");
+                        }
+                    }}
+                    onReplace={(name) => replaceStudentAt(deskMenu.itemId, seatIndex, name)}
+                />
+            );
+        })()}
     </div>
   );
 };

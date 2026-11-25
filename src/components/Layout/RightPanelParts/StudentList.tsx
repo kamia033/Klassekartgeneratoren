@@ -9,7 +9,7 @@ interface StudentListProps {
 }
 
 const StudentList: React.FC<StudentListProps> = () => {
-  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, setCanvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones, studentConstraints, setStudentConstraints } = useApp();
+  const { students, setStudents, absentStudents, setAbsentStudents, canvasItems, setCanvasItems, studentZoneAssignments, setStudentZoneAssignments, showZones, studentConstraints, setStudentConstraints, studentPairings, setStudentPairings } = useApp();
   const [studentInput, setStudentInput] = useState(students.join('\n'));
   const [isEditingList, setIsEditingList] = useState(false);
   const [activeStudentMenu, setActiveStudentMenu] = useState<string | null>(null);
@@ -90,6 +90,22 @@ const StudentList: React.FC<StudentListProps> = () => {
       });
   };
 
+  const toggleStudentPairing = (student: string, otherStudent: string) => {
+      const currentPairings = studentPairings[student] || [];
+      const otherPairings = studentPairings[otherStudent] || [];
+      const isPaired = currentPairings.includes(otherStudent);
+
+      setStudentPairings({
+          ...studentPairings,
+          [student]: isPaired
+              ? currentPairings.filter(name => name !== otherStudent)
+              : [...currentPairings, otherStudent],
+          [otherStudent]: isPaired
+              ? otherPairings.filter(name => name !== student)
+              : otherPairings.includes(student) ? otherPairings : [...otherPairings, student]
+      });
+  };
+
   const toggleStudentLock = (student: string) => {
       const newItems = canvasItems.map(item => {
           if (item.type === 'desk') {
@@ -139,6 +155,11 @@ const StudentList: React.FC<StudentListProps> = () => {
   return (
     <div className="student-list-container">
         <div className="student-input-section">
+            <div className="student-input-controls">
+                <button onClick={() => setIsEditingList(!isEditingList)}>
+                    {isEditingList ? '✅ Ferdig' : '📝 Rediger elevnavn'}
+                </button>
+            </div>
             {isEditingList ? (
                 <textarea 
                     id="studentList" 
@@ -205,6 +226,24 @@ const StudentList: React.FC<StudentListProps> = () => {
                                             ))}
                                         </div>
                                     )}
+                                    {showZones && (studentPairings[student] || []).length > 0 && (
+                                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+                                            {(studentPairings[student] || []).map(pairedStudent => (
+                                                <span key={pairedStudent} style={{
+                                                    fontSize: '10px',
+                                                    backgroundColor: '#e8f5e9',
+                                                    color: '#2e7d32',
+                                                    padding: '2px 4px',
+                                                    borderRadius: '4px',
+                                                    opacity: 0.8,
+                                                    border: '1px solid #c8e6c9',
+                                                    whiteSpace: 'nowrap'
+                                                }} title={`Sitt sammen med ${pairedStudent}`}>
+                                                    ↔ {pairedStudent}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             
@@ -222,14 +261,6 @@ const StudentList: React.FC<StudentListProps> = () => {
                     {students.length === 0 && <p style={{ color: '#999', fontStyle: 'italic' }}>Ingen elever lagt til.</p>}
                 </div>
             )}
-            <div className="student-input-controls" style={{ marginTop: '5px' }}>
-                <button 
-                    onClick={() => setIsEditingList(!isEditingList)} 
-                    style={{ fontSize: '12px', padding: '4px 8px' }}
-                >
-                    {isEditingList ? '☑️ Velg elever' : '📝 Rediger liste'}
-                </button>
-            </div>
         </div>
 
         {activeStudentMenu && (
@@ -357,6 +388,66 @@ const StudentList: React.FC<StudentListProps> = () => {
                         <option value="" disabled>Legg til elev...</option>
                         {students
                             .filter(s => s !== activeStudentMenu && !(studentConstraints[activeStudentMenu] || []).includes(s))
+                            .map(s => (
+                                <option key={s} value={s}>{s}</option>
+                            ))
+                        }
+                    </select>
+                </div>
+
+                <div style={{ padding: '4px 8px', borderBottom: '1px solid #eee', borderTop: '1px solid #eee', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>Sett sammen på bord</div>
+                <div style={{ padding: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                        {(studentPairings[activeStudentMenu] || []).map(pairedStudent => (
+                            <span key={pairedStudent} style={{
+                                backgroundColor: '#e8f5e9',
+                                color: '#2e7d32',
+                                padding: '2px 6px',
+                                borderRadius: '12px',
+                                fontSize: '11px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}>
+                                {pairedStudent}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleStudentPairing(activeStudentMenu, pairedStudent);
+                                    }}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                        fontSize: '10px',
+                                        color: '#2e7d32'
+                                    }}
+                                    aria-label={`Fjern ${pairedStudent}`}
+                                >
+                                    ✕
+                                </button>
+                            </span>
+                        ))}
+                        {(studentPairings[activeStudentMenu] || []).length === 0 && (
+                            <span style={{ color: '#999', fontSize: '11px', fontStyle: 'italic' }}>Ingen valgte elever</span>
+                        )}
+                    </div>
+
+                    <select
+                        onChange={(e) => {
+                            if (e.target.value) {
+                                toggleStudentPairing(activeStudentMenu, e.target.value);
+                                e.target.value = '';
+                            }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ width: '100%', padding: '4px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
+                        defaultValue=""
+                    >
+                        <option value="" disabled>Legg til elev...</option>
+                        {students
+                            .filter(s => s !== activeStudentMenu && !(studentPairings[activeStudentMenu] || []).includes(s))
                             .map(s => (
                                 <option key={s} value={s}>{s}</option>
                             ))

@@ -1,16 +1,25 @@
-.color-button-container {
-    display: flex;
-  border: 0px solid #ccc;
-  margin: 10px;
-
+.controls button.color-button-container {
+  display: flex;
+  border: 0;
+  margin: 5px 0;
+  padding: 0;
+  width: 100%;
+  background: transparent;
   border-radius: 5px;
-  overflow-x: auto;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
 }
 
-.color-button-container:hover {
-  transform: scale(1.2);
+.controls button.color-button-container:hover,
+.controls button.color-button-container:focus,
+.controls button.color-button-container:active {
+  transform: scale(1.03);
   transition: transform 0.2s ease;
-  overflow: hidden;
+  border: 0;
+  box-shadow: none;
+  outline: none;
 }
 
 .color-button {
@@ -19,11 +28,11 @@
   margin-top: 5px;
   
   width: 8%;
-  border: none;
+  border: 0;
     margin:0;
   
   max-width: 100%;  
-overflow: none;
+  overflow: hidden;
 }
 .color-button:hover {
   transform: scale(1.3);

@@ -1,0 +1,33 @@
+.map-switcher {
+  display: flex;
+  margin-top: 10px;
+}
+
+.map-switcher .map-switcher-button {
+  flex: 1;
+  margin: 0;
+  padding: 8px;
+  border: 3px solid #121212;
+  border-radius: 8px 0 0 8px;
+  background-color: #fff;
+  color: #121212;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.map-switcher .map-switcher-button + .map-switcher-button {
+  /* Klassekart 1 tegner den felles midtstreken, så venstre kant her fjernes */
+  margin-left: 0;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+}
+
+.map-switcher .map-switcher-button:hover {
+  background-color: #dbdbdb;
+}
+
+.map-switcher .map-switcher-button.active {
+  background-color: #e0e0e0;
+  font-weight: bold;
+}

@@ -5,6 +5,7 @@ import ClassControls from './RightPanelParts/ClassControls';
 import StudentList from './RightPanelParts/StudentList';
 import GroupControls from './RightPanelParts/GroupControls';
 import MapControls from './RightPanelParts/MapControls';
+import MapSwitcher from './RightPanelParts/MapSwitcher';
 import './RightPanel.css';
 import './Groups.css';
 import './Roles.css';
@@ -18,25 +19,44 @@ interface RightPanelProps {
 }
 
 const RightPanel: React.FC<RightPanelProps> = () => {
-  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, showZones, setShowZones, absentStudents, setAbsentStudents, uniformTextSize, setUniformTextSize, studentConstraints, setStudentConstraints } = useApp();
+  const { activeTab, setActiveTab, students, canvasItems, setCanvasItems, secondaryMapItems, setSecondaryMapItems, currentMapIndex, currentClass, setCurrentClass, setStudents, mode, setMode, studentZoneAssignments, setStudentZoneAssignments, showZones, setShowZones, absentStudents, setAbsentStudents, uniformTextSize, setUniformTextSize, studentConstraints, setStudentConstraints, studentPairings, setStudentPairings, animateSeating, setAnimateSeating } = useApp();
   const { addToast } = useToast();
   const [savedClasses, setSavedClasses] = useState<string[]>([]);
+  const [isClassStateReady, setIsClassStateReady] = useState(false);
 
   useEffect(() => {
       const classes = JSON.parse(localStorage.getItem('classes') || '{}');
       setSavedClasses(Object.keys(classes));
+
+      if (currentClass && classes[currentClass]) {
+          const savedClass = classes[currentClass];
+          setStudents(savedClass.students || []);
+          setCanvasItems(currentMapIndex === 0 ? savedClass.canvasItems || [] : savedClass.canvasItems2 || []);
+          setSecondaryMapItems(currentMapIndex === 0 ? savedClass.canvasItems2 || [] : savedClass.canvasItems || []);
+          setStudentZoneAssignments(savedClass.studentZoneAssignments || {});
+          setAbsentStudents([]);
+          setUniformTextSize(savedClass.uniformTextSize || false);
+          setStudentConstraints(savedClass.studentConstraints || {});
+          setStudentPairings(savedClass.studentPairings || {});
+          setAnimateSeating(savedClass.animateSeating ?? true);
+      }
+      setIsClassStateReady(true);
   }, []);
 
   const loadClass = (className: string) => {
       const classes = JSON.parse(localStorage.getItem('classes') || '{}');
       if (classes[className]) {
           setStudents(classes[className].students || []);
-          setCanvasItems(classes[className].canvasItems || []);
-          setSecondaryMapItems(classes[className].canvasItems2 || []);
+          const firstMap = classes[className].canvasItems || [];
+          const secondMap = classes[className].canvasItems2 || [];
+          setCanvasItems(currentMapIndex === 0 ? firstMap : secondMap);
+          setSecondaryMapItems(currentMapIndex === 0 ? secondMap : firstMap);
           setStudentZoneAssignments(classes[className].studentZoneAssignments || {});
           setAbsentStudents([]); // Always reset absent students on load
           setUniformTextSize(classes[className].uniformTextSize || false);
           setStudentConstraints(classes[className].studentConstraints || {});
+          setStudentPairings(classes[className].studentPairings || {});
+          setAnimateSeating(classes[className].animateSeating ?? true);
           setCurrentClass(className);
           setShowZones(false);
           addToast(`Lastet klasse: ${className}`, 'success');
@@ -51,7 +71,7 @@ const RightPanel: React.FC<RightPanelProps> = () => {
               alert('En klasse med dette navnet finnes allerede!');
               return;
           }
-          classes[name] = { students: [], canvasItems: [], studentZoneAssignments: {}, absentStudents: [], uniformTextSize: false, studentConstraints: {} };
+          classes[name] = { students: [], canvasItems: [], studentZoneAssignments: {}, absentStudents: [], uniformTextSize: false, studentConstraints: {}, studentPairings: {}, animateSeating: true };
           localStorage.setItem('classes', JSON.stringify(classes));
           setSavedClasses(Object.keys(classes));
           setCurrentClass(name);
@@ -62,6 +82,8 @@ const RightPanel: React.FC<RightPanelProps> = () => {
           setAbsentStudents([]);
           setUniformTextSize(false);
           setStudentConstraints({});
+          setStudentPairings({});
+          setAnimateSeating(true);
           setShowZones(false);
           
           // Reset scroll position
@@ -87,13 +109,15 @@ const RightPanel: React.FC<RightPanelProps> = () => {
           setStudentZoneAssignments({});
           setAbsentStudents([]);
           setStudentConstraints({});
+          setStudentPairings({});
+          setAnimateSeating(true);
           addToast('Klasse slettet', 'success');
       }
   };
 
   // Auto-save when data changes
   useEffect(() => {
-      if (currentClass) {
+      if (isClassStateReady && currentClass) {
           const classes = JSON.parse(localStorage.getItem('classes') || '{}');
           
           // Determine which map is which based on current index
@@ -107,11 +131,13 @@ const RightPanel: React.FC<RightPanelProps> = () => {
               studentZoneAssignments,
               absentStudents,
               uniformTextSize,
-              studentConstraints
+              studentConstraints,
+              studentPairings,
+              animateSeating
           };
           localStorage.setItem('classes', JSON.stringify(classes));
       }
-  }, [students, canvasItems, secondaryMapItems, currentClass, currentMapIndex, studentZoneAssignments, absentStudents, uniformTextSize, studentConstraints]);
+  }, [isClassStateReady, students, canvasItems, secondaryMapItems, currentClass, currentMapIndex, studentZoneAssignments, absentStudents, uniformTextSize, studentConstraints, studentPairings, animateSeating]);
 
   return (
     <div className="controls">
@@ -151,7 +177,9 @@ const RightPanel: React.FC<RightPanelProps> = () => {
             loadClass={loadClass} 
             createClass={createClass} 
             deleteClass={deleteClass} 
-        />
+        >
+          {activeTab === 'kart' && <MapSwitcher />}
+        </ClassControls>
 
         <StudentList />
 

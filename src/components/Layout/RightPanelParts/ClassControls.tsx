@@ -9,34 +9,34 @@ interface ClassControlsProps {
   loadClass: (className: string) => void;
   createClass: () => void;
   deleteClass: () => void;
+  children?: React.ReactNode;
 }
 
-const ClassControls: React.FC<ClassControlsProps> = ({ savedClasses, loadClass, createClass, deleteClass }) => {
+const ClassControls: React.FC<ClassControlsProps> = ({ savedClasses, loadClass, createClass, deleteClass, children }) => {
   const { currentClass } = useApp();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <div className="save-section">
-      <div className="dropdown" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-        <div className="dropdown-selected">{currentClass || "Velg klasse"}</div>
-        {isDropdownOpen && (
-          <ul className="dropdown-options" style={{ display: 'block' }}>
-            {savedClasses.map(className => (
-              <li key={className} onClick={(e) => { e.stopPropagation(); loadClass(className); setIsDropdownOpen(false); }}>{className}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div id="createAndDeleteButtons">
-        <button onClick={createClass}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <img src={addIcon} alt="Add" /><span>Opprett klasse</span>
-          </div>
-          </button>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
-          <button onClick={deleteClass} ><img src={deleteIcon} alt="Delete" /></button>
+      <div className="class-row">
+        <div className="dropdown" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+          <div className="dropdown-selected">{currentClass || "Klasse"}</div>
+          {isDropdownOpen && (
+            <ul className="dropdown-options" style={{ display: 'block' }}>
+              {savedClasses.map(className => (
+                <li key={className} onClick={(e) => { e.stopPropagation(); loadClass(className); setIsDropdownOpen(false); }}>{className}</li>
+              ))}
+            </ul>
+          )}
         </div>
+        <button className="class-icon-button" onClick={createClass} title="Opprett klasse">
+          <img src={addIcon} alt="Opprett klasse" />
+        </button>
+        <button className="class-icon-button" onClick={deleteClass} title="Slett klasse">
+          <img src={deleteIcon} alt="Slett klasse" />
+        </button>
       </div>
+      {children}
     </div>
   );
 };

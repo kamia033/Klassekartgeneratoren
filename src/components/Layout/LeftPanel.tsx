@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import CanvasGrid from '../Canvas/CanvasGrid';
@@ -13,6 +13,32 @@ const LeftPanel: React.FC = () => {
   const [cellSize] = useState(40);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const groupsContainerRef = useRef<HTMLDivElement>(null);
+  const groupsContentRef = useRef<HTMLDivElement>(null);
+  const gs = (px: number) => `calc(${px}px * var(--gs))`;
+
+  // Finds the largest group scale where all groups fit without scrolling.
+  useLayoutEffect(() => {
+      if (activeTab !== 'grupper' || generatedGroups.length === 0) return;
+      const content = groupsContentRef.current;
+      const scroller = content?.parentElement;
+      if (!content || !scroller) return;
+
+      let lo = 0.1;
+      let hi = 3;
+      let best = lo;
+      for (let i = 0; i < 20; i++) {
+          const mid = (lo + hi) / 2;
+          content.style.setProperty('--gs', String(mid));
+          if (scroller.scrollHeight <= scroller.clientHeight) {
+              best = mid;
+              lo = mid;
+          } else {
+              hi = mid;
+          }
+      }
+      content.style.setProperty('--gs', String(best));
+      setGroupScale(best);
+  }, [generatedGroups, activeTab, setGroupScale]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -135,15 +161,16 @@ const LeftPanel: React.FC = () => {
                     overflowY: 'auto',
                     paddingBottom: '60px' // Make space for toolbar
                 }}>
-                <div id="groups-visual-content" style={{ 
+                <div id="groups-visual-content" ref={groupsContentRef} style={{ 
+                    '--gs': groupScale || 1,
                     display: 'grid', 
-                    gridTemplateColumns: isFullscreen ? `repeat(auto-fill, minmax(${350 * (groupScale || 1)}px, 1fr))` : `repeat(auto-fill, minmax(${220 * (groupScale || 1)}px, 1fr))`, 
-                    gap: isFullscreen ? `${25 * (groupScale || 1)}px` : '15px', 
+                    gridTemplateColumns: isFullscreen ? `repeat(auto-fill, minmax(${gs(350)}, 1fr))` : `repeat(auto-fill, minmax(${gs(220)}, 1fr))`, 
+                    gap: isFullscreen ? gs(25) : '15px', 
                     padding: isFullscreen ? '50px' : '30px 10px 80px 10px',
                     alignItems: 'start',
                     width: '100%',
                     boxSizing: 'border-box'
-                }}>
+                } as React.CSSProperties}>
                     {generatedGroups.map((group, index) => {
                         const members = group.leader 
                             ? [group.leader, ...group.members.filter(m => m !== group.leader)]
@@ -165,25 +192,25 @@ const LeftPanel: React.FC = () => {
                         }}>
                             <div className="group-header" style={{ 
                                 fontWeight: '600', 
-                                padding: isFullscreen ? `${18 * (groupScale || 1)}px ${22 * (groupScale || 1)}px` : `${12 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`,
+                                padding: isFullscreen ? `${gs(18)} ${gs(22)}` : `${gs(12)} ${gs(15)}`,
                                 backgroundColor: getGroupColor(index),
                                 color: '#333',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                fontSize: isFullscreen ? `${24 * (groupScale || 1)}px` : `${18 * (groupScale || 1)}px`
+                                fontSize: isFullscreen ? gs(24) : gs(18)
                             }}>
                                 <span>Gruppe {index + 1}</span>
                             </div>
-                            <ul className="group-students-list" style={{ listStyle: 'none', padding: `${10 * (groupScale || 1)}px 0`, margin: 0 }}>
+                            <ul className="group-students-list" style={{ listStyle: 'none', padding: `${gs(10)} 0`, margin: 0 }}>
                                 {members.map((student, sIndex) => (
                                     <li key={sIndex} className="group-student-item" style={{ 
-                                        padding: isFullscreen ? `${12 * (groupScale || 1)}px ${20 * (groupScale || 1)}px` : `${8 * (groupScale || 1)}px ${15 * (groupScale || 1)}px`, 
+                                        padding: isFullscreen ? `${gs(12)} ${gs(20)}` : `${gs(8)} ${gs(15)}`, 
                                         borderBottom: sIndex < members.length - 1 ? '1px solid #f0f0f0' : 'none',
                                         display: 'flex',
                                         justifyContent: 'center',
                                         alignItems: 'center',
-                                        fontSize: isFullscreen ? `${28 * (groupScale || 1)}px` : `${24 * (groupScale || 1)}px`
+                                        fontSize: isFullscreen ? gs(28) : gs(24)
                                     }}>
                                         <span>{student}</span>
                                         {group.leader === student && <span title="Gruppeleder" style={{ marginLeft: '8px' }}>👑</span>}
@@ -207,8 +234,7 @@ const LeftPanel: React.FC = () => {
                     `}</style>
                     {generatedGroups.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#666', marginTop: '50px' }}>
-                            <p>Ingen grupper generert ennå.</p>
-                            <p>Bruk kontrollpanelet til høyre for å generere grupper.</p>
+                            <p>Lag en gruppe med gruppeverktøyet</p>
                         </div>
                     )}
                 </div>

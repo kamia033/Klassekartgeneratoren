@@ -3,6 +3,8 @@ import './CanvasToolbar.css';
 import copyIcon from'../../assets/copy.svg';
 import downloadIcon from '../../assets/download.svg';
 import fullscreenIcon from '../../assets/fullscreen.svg';
+import rewindIcon from '../../assets/rewind.svg';
+import redoIcon from '../../assets/redo.svg';
 import zoomInIcon from '../../assets/zoom-in.svg';
 import zoomOutIcon from '../../assets/zoom-out.svg';
 
@@ -12,13 +14,25 @@ interface CanvasToolbarProps {
     onFullscreen: () => void;
     onCopy?: () => void;
     onDownload?: () => void;
-
-
+    onUndo?: () => void;
+    canUndo?: boolean;
+    onRedo?: () => void;
+    canRedo?: boolean;
 }
 
-const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ scale, setScale, onFullscreen, onCopy, onDownload }) => {
+const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ scale, setScale, onFullscreen, onCopy, onDownload, onUndo, canUndo, onRedo, canRedo }) => {
     return (
         <div className="canvas-toolbar">
+            {(onUndo || onRedo) && (
+                <div className="canvas-toolbar-history">
+                    {onUndo && (
+                        <button className="canvas-toolbar-redoundo" onClick={onUndo} disabled={!canUndo} title="Angre siste endring"><img src={rewindIcon} alt="Angre" /></button>
+                    )}
+                    {onRedo && (
+                        <button className="canvas-toolbar-redoundo" onClick={onRedo} disabled={!canRedo} title="Gjør om siste angring"><img src={redoIcon} alt="Gjør om" /></button>
+                    )}
+                </div>
+            )}
             <div className="canvas-toolbar-scale">
             <img 
                 src={zoomOutIcon} 

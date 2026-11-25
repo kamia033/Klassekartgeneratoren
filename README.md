@@ -1,73 +1,139 @@
-# React + TypeScript + Vite
+# Klassekartgenerator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+En nettbasert generator for å lage, administrere og eksportere klassekart. Appen er utviklet for lærere som raskt vil plassere elever, ta hensyn til samarbeid og soner, og bruke samme elevplassering i grupper.
 
-Currently, two official plugins are available:
+## Funksjoner
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Klasser og elever
 
-## React Compiler
+- Opprett, last inn og slett flere klasser.
+- Registrer elevnavn, ett per linje.
+- Marker elever som fraværende uten å fjerne dem fra klassen.
+- Rediger elevnavn direkte i elevlisten.
+- Sett enkelte elever fast til sin nåværende plass.
+- Brukerens sist valgte klasse lastes automatisk ved neste besøk.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Klassekart
 
-## Expanding the ESLint configuration
+- Arbeid med to alternative kart per klasse.
+- Legg til enkeltpulter, pultegrupper og rundbord.
+- Legg til tavle og egne merkelapper.
+- Marker plasser som utilgjengelige.
+- Zoom, panorer og vis kartet i fullskjerm.
+- Angre og gjør om endringer.
+- Vis stoler ved pultene.
+- Velg mellom flere fargetemaer.
+- Bruk lik tekststørrelse på alle elevnavn.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Tilfeldig plassering
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Fordel tilstedeværende elever automatisk.
+- Behold grupper av elever mellom de to kartene.
+- Valgfri kaotisk animasjon bytter navnene raskt og deretter stadig saktere før sluttplasseringen vises.
+- Animasjonen endrer bare visningen; mellomresultatene lagres ikke.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Begrensninger og ønsker
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Aktiver **Vis avansert** for å åpne elevens innstillinger:
+
+- Velg soner eleven kan plasseres i.
+- Bestem hvilke elever eleven ikke skal sitte ved siden av.
+- Sett elever sammen på samme bord eller sammenhengende pultgruppe.
+- Lås eleven til nåværende plass.
+
+Soneplassering, «unngå»-valg og «sett sammen»-valg brukes som føringer når elevene plasseres.
+
+### Grupper
+
+- Generer grupper etter ønsket gruppestørrelse eller antall grupper.
+- Ta hensyn til elever som skal unngå hverandre.
+- Hold ekstra elever i en separat gruppe.
+- Velg gruppeleder tilfeldig.
+- Slå gruppeanimasjon av eller på.
+
+### Eksport
+
+Klassekart kan:
+
+- kopieres til utklippstavlen
+- lastes ned som PNG-bilde
+
+Eksporten inkluderer hele det innholdsrike området på kartet. Når stoler vises, får eksportbildet ekstra margin slik at stolene ikke blir beskåret.
+
+Gruppesidens innhold kan også kopieres eller lastes ned som bilde.
+
+## Lagring
+
+Appen bruker nettleserens `localStorage` og krever ingen bruker- eller serverkonto.
+
+Dette lagres automatisk:
+
+- klasser, elevlister og kart
+- elevpreferanser og sonevalg
+- visnings- og gruppeinnstillinger
+- sist valgte klasse, fane, kart og visningsmodus
+
+Dataene lagres lokalt i nettleseren. De følger derfor ikke automatisk mellom ulike enheter eller nettlesere. Hvis lokal lagring er skadet, vises en feilmelding med mulighet for å slette de lagrede dataene.
+
+## Kjøre lokalt
+
+### Krav
+
+- Node.js
+- npm
+
+### Installasjon
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Utvikling
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+npm run dev
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Vite viser lokal adresse i terminalen.
+
+### Produksjonsbygg
+
+```bash
+npm run build
+```
+
+Det ferdige bygget legges i `dist`.
+
+### Forhåndsvis produksjonsbygg
+
+```bash
+npm run preview
+```
+
+## Teknologi
+
+- React
+- TypeScript
+- Vite
+- Canvas 2D
+- `html2canvas` for eksport av gruppevisningen
+- ESLint
+
+## Prosjektstruktur
+
+```text
+src/
+  components/
+    Canvas/            Karttegning og verktøylinje
+    Layout/            Hovedvisning og kontrollpanel
+    UI/                Menyer og varsler
+  context/             Delt applikasjonstilstand
+  hooks/               Gjenbrukbar lokal lagring
+  types/               TypeScript-typer
+```
+
+## Linting
+
+```bash
+npm run lint
 ```

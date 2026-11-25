@@ -81,11 +81,14 @@
 
 .student-input-controls {
   display: flex;
+  justify-content: flex-end;
   gap: 4px;
   flex-wrap: wrap;
 }
 
 .student-input-controls button {
+  font-size: 12px;
+  padding: 4px 8px;
   background-color: #f5f5f5;
   border: 1px solid #ddd;
   color: #666;
